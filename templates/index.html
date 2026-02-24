@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sherlock AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 h-screen overflow-hidden">
+
+<!-- Overlay -->
+<div id="overlay" class="fixed inset-0 bg-black bg-opacity-45 opacity-0 invisible transition-opacity duration-300 z-[998]" onclick="closeMenu()"></div>
+
+<!-- Side Menu -->
+<div id="sideMenu" class="fixed top-0 -left-[280px] md:-left-[380px] w-[280px] md:w-[380px] h-screen bg-white shadow-lg transition-all duration-300 z-[999] flex flex-col">
+    <div class="p-4 md:p-5 border-b-4 border-teal-600 text-lg md:text-xl font-semibold flex justify-between items-center">
+        <span>Version: 1.0.0</span>
+        <span class="text-xl md:text-2xl cursor-pointer" onclick="closeMenu()">✕</span>
+    </div>
+    <ul class="p-3 md:p-4">
+        <li class="p-3 md:p-4 text-base md:text-lg cursor-pointer rounded-lg hover:bg-gray-100" 
+            onclick="window.open('https://itellicloud.sharepoint.com/sites/US-saleshub/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FUS%2Dsaleshub%2FShared%20Documents%2F06%2D%20Digital%20Innovations%20Internal%20Documents%2FArtificial%20Intelligence%20and%20Machine%20Learning%20Projects%2F2026%20%2D%20Sherlock%20AI%202%2FSherlock%20AI%202%20v1%2E0%2E0%2FPDF%20v1%2E0%2FRelease%20Document%20%2D%20Sherlock%20AI%202%20v1%2E0%2E0%2Epdf&parent=%2Fsites%2FUS%2Dsaleshub%2FShared%20Documents%2F06%2D%20Digital%20Innovations%20Internal%20Documents%2FArtificial%20Intelligence%20and%20Machine%20Learning%20Projects%2F2026%20%2D%20Sherlock%20AI%202%2FSherlock%20AI%202%20v1%2E0%2E0%2FPDF%20v1%2E0', '_blank')">
+            📄 Release Document
+        </li>
+        <li class="p-3 md:p-4 text-base md:text-lg cursor-pointer rounded-lg hover:bg-gray-100" 
+            onclick="window.open('https://itellicloud.sharepoint.com/sites/US-saleshub/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FUS%2Dsaleshub%2FShared%20Documents%2F06%2D%20Digital%20Innovations%20Internal%20Documents%2FArtificial%20Intelligence%20and%20Machine%20Learning%20Projects%2F2026%20%2D%20Sherlock%20AI%202%2FSherlock%20AI%202%20v1%2E0%2E0%2FPDF%20v1%2E0%2FSherlock%20AI%202%20%2D%20User%20Manual%2Epdf&parent=%2Fsites%2FUS%2Dsaleshub%2FShared%20Documents%2F06%2D%20Digital%20Innovations%20Internal%20Documents%2FArtificial%20Intelligence%20and%20Machine%20Learning%20Projects%2F2026%20%2D%20Sherlock%20AI%202%2FSherlock%20AI%202%20v1%2E0%2E0%2FPDF%20v1%2E0', '_blank')">
+            📘 User Manual
+        </li>
+        <li class="p-3 md:p-4 text-base md:text-lg cursor-pointer rounded-lg hover:bg-gray-100" 
+            onclick="window.open('https://forms.office.com/Pages/DesignPageV2.aspx?subpage=design&token=dfddf7e323af43bb9dc636b16ea3ce46&id=Gd7ERvwPVEyqhu5ydK-p1ypLotnXSFBLsOBkdbM0WSpUQ0JIUlFNVUlDTUNPTE1TSDc5OTdNWjFWWi4u', '_blank')">
+            💬 Feedback Form
+        </li>
+        <li class="p-3 md:p-4 text-base md:text-lg cursor-pointer rounded-lg hover:bg-gray-100" 
+            onclick="window.open('https://itellicloud.sharepoint.com/sites/NACSP/Customer%20Pursuit/Forms/Library%20View.aspx?csf=1&web=1&e=mb9wwL&CID=affdba80%2Dc69e%2D4c33%2D85d5%2D5c2c59ed141f&FolderCTID=0x01200094F5A2167C3A454C8C9D39629369F809&id=%2Fsites%2FNACSP%2FCustomer%20Pursuit%2Fz%20Sherlock%20AI%20%2D%20Test%20Folder%2F2%20%2D%20Discovery%2FTandem%20Foods', '_blank')">
+            🌐 Customer Pursuit Library
+        </li>
+    </ul>
+</div>
+
+<div class="h-screen flex flex-col">
+    <!-- Header -->
+    <div class="bg-white border-b border-gray-300 px-4 md:px-12 py-3 md:py-5 flex justify-between items-center">
+        <div class="flex gap-3 md:gap-4 items-center">
+            <span class="text-2xl md:text-3xl cursor-pointer" onclick="openMenu()">☰</span>
+            <span class="absolute left-1/2 -translate-x-1/2 text-xl md:text-3xl font-semibold text-[#0072bc]">Sherlock AI</span>
+        </div>
+        <img src="{{ url_for('static', filename='Logo-Blue.png') }}" class="h-7 md:h-9" alt="Logo">
+    </div>
+
+    <!-- Page Content -->
+    <div class="flex-1 p-3 md:p-6 flex justify-center overflow-hidden">
+        <div class="w-full max-w-7xl bg-gray-200 border-2 border-gray-300 rounded-2xl p-4 md:p-10 flex flex-col">
+            
+            <h1 class="text-center text-xl md:text-3xl font-bold mb-1">Prospect List</h1>
+            <p class="text-center text-sm md:text-lg text-gray-600 mb-3 md:mb-4">Select a Prospect to view and download documents</p>
+
+            <div class="flex justify-center mb-3 md:mb-4">
+                <input id="searchInput" type="text" placeholder="Search by Prospect Name..." 
+                       oninput="filterProspects()"
+                       class="w-full md:w-3/4 p-2.5 md:p-3 text-sm md:text-lg rounded-lg border border-gray-300">
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg flex flex-col flex-1 overflow-hidden">
+                <div class="hidden md:grid grid-cols-[1fr_180px] bg-[#0072bc] text-white px-6 py-4 text-lg font-semibold">
+                    <span>PROSPECT NAME</span>
+                    <span>ACTION</span>
+                </div>
+
+                <div class="flex-1 overflow-y-auto">
+                    {% for prospect in prospects %}
+                    <div class="prospect-row grid grid-cols-[1fr_auto] md:grid-cols-[1fr_180px] px-3 md:px-6 py-3 md:py-4 border-b border-gray-200 text-sm md:text-lg items-center hover:bg-gray-50">
+                        <span class="prospect-name truncate">{{ prospect.prospect_name }}</span>
+                        <div class="flex gap-2 justify-end">
+                            <button onclick="goTo('/view-prospect/{{ prospect.prospect_name }}')" 
+                                    class="bg-[#0072bc] text-white px-3 md:px-4 py-1.5 md:py-2 rounded-md text-sm md:text-base hover:bg-[#005a94]">
+                                View
+                            </button>
+                            <button onclick="deleteProspect('{{ prospect.prospect_name }}')" 
+                                    class="bg-red-600 text-white px-3 md:px-4 py-1.5 md:py-2 rounded-md text-sm md:text-base hover:bg-red-700">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="flex justify-center mt-4 md:mt-6">
+                <a href="{{ url_for('create_prospect') }}">
+                    <button class="bg-[#2e7d32] text-white px-5 md:px-8 py-2.5 md:py-3 rounded-lg text-sm md:text-lg">+ Create New Prospect</button>
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+function openMenu() {
+    const menu = document.getElementById("sideMenu");
+    menu.style.left = "0";
+    document.getElementById("overlay").classList.remove("invisible", "opacity-0");
+    document.getElementById("overlay").classList.add("opacity-100", "visible");
+}
+
+function closeMenu() {
+    const menu = document.getElementById("sideMenu");
+    const width = window.innerWidth >= 768 ? "-380px" : "-280px";
+    menu.style.left = width;
+    document.getElementById("overlay").classList.add("invisible", "opacity-0");
+    document.getElementById("overlay").classList.remove("opacity-100", "visible");
+}
+
+function filterProspects() {
+    const searchValue = document.getElementById('searchInput').value.toLowerCase();
+    const rows = document.querySelectorAll('.prospect-row');
+    
+    rows.forEach(row => {
+        const prospectName = row.querySelector('.prospect-name').textContent.toLowerCase();
+        if (prospectName.includes(searchValue)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+function goTo(url) {
+    window.location.href = url;
+}
+
+function deleteProspect(name) {
+    if (confirm(`Delete prospect "${name}"?`)) {
+        fetch(`/delete-prospect/${name}`, {method: 'POST'})
+            .then(() => location.reload());
+    }
+}
+</script>
+
+</body>
+</html>

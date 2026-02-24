@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Prospect | Sherlock AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 h-screen overflow-hidden">
+
+<div class="h-screen flex flex-col">
+    <!-- Header -->
+    <div class="bg-white border-b border-gray-300 px-4 md:px-12 py-3 md:py-5 flex justify-between items-center">
+        <button onclick="window.location.href='/'"
+            class="bg-[#0072bc] text-white h-9 md:h-10 px-3 md:px-5 rounded-md text-sm md:text-base hover:bg-[#005a94]">
+            ← Back
+        </button>
+        <span class="absolute left-1/2 -translate-x-1/2 text-xl md:text-3xl font-semibold text-[#0072bc]">
+            Sherlock AI
+        </span>
+        <img src="{{ url_for('static', filename='Logo-Blue.png') }}" class="h-7 md:h-9" alt="Logo">
+    </div>
+
+    <!-- Content -->
+    <div class="flex-1 p-3 md:p-6 flex justify-center overflow-hidden">
+        <div class="w-full max-w-7xl bg-gray-200 border-2 border-gray-300 rounded-2xl p-4 md:p-10 flex flex-col">
+
+            <!-- Note -->
+            <div class="bg-yellow-100 border border-yellow-300 text-yellow-800 px-3 md:px-4 py-3 md:py-4 rounded-lg mb-4 md:mb-6 text-xs md:text-sm">
+                ⚠️ <strong>NOTE:</strong> Pilot testing version. Validate AI content.
+            </div>
+
+            <!-- Prospect Input -->
+            <div class="flex flex-col md:flex-row justify-center gap-3 md:gap-4 mb-4 md:mb-6">
+                <div class="w-full md:w-3/5 relative">
+                    <input id="prospectName" type="text" placeholder="Enter Prospect Name"
+                        oninput="filterSuggestions()" onfocus="filterSuggestions()"
+                        class="w-full p-2.5 md:p-3 text-sm md:text-lg rounded-lg border border-gray-300">
+                    <div id="suggestions"
+                        class="hidden absolute top-full left-0 right-0 bg-white border rounded shadow max-h-[300px] overflow-y-auto z-50"></div>
+                </div>
+                <button onclick="saveProspect()"
+                    class="bg-[#2e7d32] text-white px-5 md:px-8 py-2.5 md:py-3 text-sm md:text-lg rounded-lg hover:bg-[#1b5e20]">
+                    Enter
+                </button>
+            </div>
+
+            <!-- IO Section -->
+            <div id="ioSection"
+                class="hidden bg-white rounded-xl shadow-lg flex flex-col md:flex-row gap-6 md:gap-8 flex-1 overflow-hidden p-4 md:p-8">
+
+                <!-- Input Side -->
+                <div class="flex-1 flex flex-col items-center min-w-0">
+                    <h3 class="text-lg md:text-xl font-semibold mb-4 md:mb-6">Input Files</h3>
+
+                    <label for="fileInput"
+                        class="w-full max-w-md border-2 border-dashed border-gray-300 p-6 md:p-8 text-center rounded-lg cursor-pointer hover:border-[#0072bc] hover:text-[#0072bc] transition text-sm md:text-base"
+                        ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                        Upload DOCX (Multiple files allowed)<br>
+                        <span class="text-xs md:text-sm text-gray-500">Click or Drag & Drop</span>
+                        <input id="fileInput" type="file" hidden accept=".docx" multiple onchange="handleFileSelect()">
+                    </label>
+
+                    <div id="selectedFiles" class="mt-3 w-full max-w-md"></div>
+
+                    <button id="generateBtn" onclick="startGeneration()"
+                        class="mt-4 md:mt-6 bg-[#2e7d32] text-white px-5 md:px-8 py-2.5 md:py-3 text-sm md:text-lg rounded-lg hover:bg-[#1b5e20]">
+                        Generate
+                    </button>
+
+                    <!-- Processing Animation -->
+                    <div id="processingAnimation"
+                        class="hidden mt-4 md:mt-6 p-3 md:p-4 bg-blue-50 border-2 border-blue-200 rounded-lg w-full max-w-md">
+                        <div class="flex justify-center gap-2 mb-3">
+                            <div class="w-2 h-2 md:w-3 md:h-3 bg-blue-500 rounded-full animate-bounce"></div>
+                            <div class="w-2 h-2 md:w-3 md:h-3 bg-blue-500 rounded-full animate-bounce" style="animation-delay:.2s"></div>
+                            <div class="w-2 h-2 md:w-3 md:h-3 bg-blue-500 rounded-full animate-bounce" style="animation-delay:.4s"></div>
+                        </div>
+                        <div class="text-center text-xs md:text-sm space-y-1">
+                            <div id="step1" class="text-gray-400">🟡 Step 1: Converting DOCX…</div>
+                            <div id="step2" class="text-gray-400">🟡 Step 2: AI Summarising…</div>
+                            <div id="step3" class="text-gray-400">🟡 Step 3: Generating Document…</div>
+                        </div>
+                        <p id="statusMsg" class="text-center text-xs text-gray-500 mt-2"></p>
+                        <p class="text-center text-xs text-blue-600 mt-1">
+                            ✅ You can safely close this tab — processing continues on the server.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Output Side -->
+                <div class="flex-1 flex flex-col items-center justify-center min-w-0">
+                    <h3 class="text-lg md:text-xl font-semibold mb-4 md:mb-6">Output Files</h3>
+
+                    <div id="outputMessage" class="text-gray-500 py-8 md:py-10 text-xs md:text-sm">
+                        Generate to see output
+                    </div>
+
+                    <div id="outputFilesList" class="hidden w-full max-w-md mb-4 md:mb-6"></div>
+
+                    <button id="downloadBtn" onclick="downloadLatest()"
+                        class="hidden bg-[#2e7d32] text-white px-5 md:px-8 py-2.5 md:py-3 text-sm md:text-lg rounded-lg hover:bg-[#1b5e20]">
+                        Download
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let existingProspects = [];
+let latestOutputFile = '';
+let currentProspectName = '';
+let uploadedFilesCount = 0;
+let pollInterval = null;
+
+async function loadProspects() {
+    const res = await fetch("/api/prospects");
+    existingProspects = await res.json();
+}
+loadProspects();
+
+function filterSuggestions() {
+    const v = prospectName.value.toLowerCase();
+    if (!v) return suggestions.classList.add("hidden");
+    const matches = existingProspects.filter(p => p.prospect_name.toLowerCase().includes(v));
+    if (!matches.length) return suggestions.classList.add("hidden");
+    suggestions.innerHTML = matches.map(p => `
+        <div class="px-3 md:px-4 py-2 md:py-3 border-b cursor-pointer hover:bg-gray-50 text-xs md:text-sm"
+             onclick="selectSuggestion('${p.prospect_name}','${p.description||""}')">
+            <strong>${p.prospect_name}</strong>
+            <div class="text-xs text-gray-600">${p.description||""}</div>
+        </div>`).join("");
+    suggestions.classList.remove("hidden");
+}
+
+function selectSuggestion(n, d) {
+    prospectName.value = n;
+    suggestions.classList.add("hidden");
+    alert(`⚠️ "${n}" already exists.`);
+}
+
+async function saveProspect() {
+    if (!prospectName.value.trim()) return alert("Enter name");
+    currentProspectName = prospectName.value.trim();
+
+    await fetch("/save-prospect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prospect_name: currentProspectName })
+    });
+
+    try {
+        const res = await fetch(`/api/prospect-files/${currentProspectName}/input`);
+        const existingFiles = await res.json();
+        uploadedFilesCount = existingFiles.filter(f => f.endsWith('.docx')).length;
+    } catch(e) {
+        uploadedFilesCount = 0;
+    }
+
+    ioSection.classList.remove("hidden");
+    prospectName.disabled = true;
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    e.currentTarget.classList.add('border-[#0072bc]', 'bg-blue-50');
+}
+function handleDragLeave(e) {
+    e.currentTarget.classList.remove('border-[#0072bc]', 'bg-blue-50');
+}
+function handleDrop(e) {
+    e.preventDefault();
+    e.currentTarget.classList.remove('border-[#0072bc]', 'bg-blue-50');
+    fileInput.files = e.dataTransfer.files;
+    handleFileSelect();
+}
+
+function handleFileSelect() {
+    selectedFiles.innerHTML = "";
+    [...fileInput.files].forEach((f, idx) => {
+        const fileNumber = uploadedFilesCount + idx + 1;
+        selectedFiles.innerHTML +=
+            `<div class="bg-blue-50 border border-blue-200 px-3 py-2 mt-2 rounded text-xs md:text-sm break-all">📄 ${fileNumber}. ${f.name}</div>`;
+    });
+}
+
+// ── Step indicator helpers ────────────────────────────────────────────────────
+function resetSteps() {
+    ['step1','step2','step3'].forEach(id => {
+        const el = document.getElementById(id);
+        el.className = 'text-gray-400';
+    });
+}
+
+function markStepActive(n) {
+    resetSteps();
+    for (let i = 1; i < n; i++) {
+        const el = document.getElementById(`step${i}`);
+        el.className = 'text-green-600 font-semibold';
+        el.innerHTML = el.innerHTML.replace('🟡','✅');
+    }
+    const el = document.getElementById(`step${n}`);
+    el.className = 'text-blue-600 font-semibold';
+    el.innerHTML = el.innerHTML.replace('🟡','⚙️');
+}
+
+function markAllDone() {
+    ['step1','step2','step3'].forEach(id => {
+        const el = document.getElementById(id);
+        el.className = 'text-green-600 font-semibold';
+        el.innerHTML = el.innerHTML.replace('🟡','✅').replace('⚙️','✅');
+    });
+}
+
+// ── Polling ───────────────────────────────────────────────────────────────────
+function startPolling(jobId, totalFilesAfterUpload) {
+    if (pollInterval) clearInterval(pollInterval);
+
+    pollInterval = setInterval(async () => {
+        try {
+            const res = await fetch(`/api/job-status/${jobId}`);
+            if (!res.ok) return;
+            const job = await res.json();
+
+            document.getElementById('statusMsg').textContent = job.message || '';
+
+            if (job.status === 'running' || job.status === 'starting') {
+                if (job.step >= 1) markStepActive(job.step);
+            }
+
+            if (job.status === 'done') {
+                clearInterval(pollInterval);
+                markAllDone();
+                latestOutputFile = job.output_file || '';
+
+                const fileRange = totalFilesAfterUpload === 1
+                    ? `File 1`
+                    : `Files 1-${totalFilesAfterUpload}`;
+
+                setTimeout(() => {
+                    processingAnimation.classList.add("hidden");
+                    outputMessage.classList.add("hidden");
+                    outputFilesList.classList.remove("hidden");
+                    downloadBtn.classList.remove("hidden");
+                    generateBtn.classList.remove("hidden");
+
+                    uploadedFilesCount = totalFilesAfterUpload;
+
+                    outputFilesList.innerHTML = latestOutputFile
+                        ? `<div class="bg-gray-100 px-3 md:px-4 py-3 rounded break-all text-center text-xs md:text-sm">
+                               📄 ${fileRange}: ${latestOutputFile}
+                           </div>`
+                        : `<div class="text-red-500 text-center text-xs md:text-sm">No output file found</div>`;
+
+                    fileInput.value = '';
+                    selectedFiles.innerHTML = '';
+                }, 800);
+            }
+
+            if (job.status === 'error') {
+                clearInterval(pollInterval);
+                alert('Generation failed: ' + job.message);
+                processingAnimation.classList.add("hidden");
+                generateBtn.classList.remove("hidden");
+            }
+
+        } catch(e) {
+            // network hiccup — keep polling
+        }
+    }, 3000); // poll every 3 seconds
+}
+
+// ── Main generate flow ────────────────────────────────────────────────────────
+async function startGeneration() {
+    if (!fileInput.files.length) return alert("Upload files first");
+
+    generateBtn.classList.add("hidden");
+    processingAnimation.classList.remove("hidden");
+    resetSteps();
+
+    const totalFilesAfterUpload = uploadedFilesCount + fileInput.files.length;
+
+    try {
+        // Upload files
+        for (let i = 0; i < fileInput.files.length; i++) {
+            const fd = new FormData();
+            fd.append("file", fileInput.files[i]);
+            fd.append("prospect_name", currentProspectName);
+            await fetch("/upload", { method: "POST", body: fd });
+        }
+
+        // Start background job — returns immediately with job_id
+        const r = await fetch("/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prospect_name: currentProspectName })
+        });
+
+        if (!r.ok) throw new Error(await r.text());
+        const data = await r.json();
+
+        if (!data.job_id) throw new Error('No job ID returned');
+
+        // Begin polling — works even if user switches tabs or minimises browser
+        startPolling(data.job_id, totalFilesAfterUpload);
+
+    } catch(err) {
+        alert("Generation failed: " + err.message);
+        processingAnimation.classList.add("hidden");
+        generateBtn.classList.remove("hidden");
+    }
+}
+
+function downloadLatest() {
+    if (latestOutputFile)
+        location.href = `/download/${currentProspectName}/output/${latestOutputFile}`;
+}
+
+document.addEventListener("click", e => {
+    if (!e.target.closest(".relative"))
+        suggestions.classList.add("hidden");
+});
+</script>
+
+</body>
+</html>

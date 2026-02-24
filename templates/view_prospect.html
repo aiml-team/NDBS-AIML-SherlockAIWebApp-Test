@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Prospect | Sherlock AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 h-screen overflow-hidden">
+
+<div class="h-screen flex flex-col">
+    <!-- Header -->
+    <div class="bg-white border-b border-gray-300 px-4 md:px-12 py-3 md:py-5 flex justify-between items-center">
+        <button onclick="window.location.href='/'"
+            class="bg-[#0072bc] text-white h-9 md:h-10 px-3 md:px-5 rounded-md text-sm md:text-base hover:bg-[#005a94]">
+            ← Back
+        </button>
+        <span class="absolute left-1/2 -translate-x-1/2 text-xl md:text-3xl font-semibold text-[#0072bc]">
+            Sherlock AI
+        </span>
+        <img src="{{ url_for('static', filename='Logo-Blue.png') }}" class="h-7 md:h-9" alt="Logo">
+    </div>
+
+    <!-- Content -->
+    <div class="flex-1 p-3 md:p-6 flex justify-center overflow-hidden">
+        <div class="w-full max-w-7xl bg-gray-200 border-2 border-gray-300 rounded-2xl p-4 md:p-10 flex flex-col">
+
+            <h2 class="text-center text-xl md:text-3xl font-semibold mb-4 md:mb-6">
+                {{ prospect_name }}
+            </h2>
+
+            <!-- IO Container -->
+            <div class="bg-white rounded-xl shadow-lg flex flex-col md:flex-row gap-6 md:gap-8 flex-1 overflow-hidden p-4 md:p-8">
+
+                <!-- Input Side -->
+                <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+                    <h3 class="text-center text-lg md:text-xl font-semibold mb-4 md:mb-6">Input Files</h3>
+
+                    <label for="fileInput"
+                        class="block w-full max-w-md mx-auto border-2 border-dashed border-gray-300 p-6 md:p-8 text-center rounded-lg cursor-pointer hover:border-[#0072bc] hover:text-[#0072bc] transition text-sm md:text-base"
+                        ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                        Click or Drag & Drop to add more files<br>
+                        <span class="text-xs md:text-sm text-gray-500">(Multiple files allowed)</span>
+                        <input type="file" id="fileInput" hidden accept=".docx" multiple onchange="handleFileSelect()">
+                    </label>
+
+                    <div id="selectedFile" class="mb-3 mt-3"></div>
+
+                    <button id="generateBtn" onclick="startGeneration()"
+                        class="hidden mx-auto bg-[#2e7d32] text-white px-5 md:px-8 py-2.5 md:py-3 text-sm md:text-lg rounded-lg hover:bg-[#1b5e20]">
+                        Generate Document
+                    </button>
+
+                    <!-- Processing Animation -->
+                    <div id="processingAnimation"
+                        class="hidden mt-4 md:mt-6 p-3 md:p-4 bg-blue-50 border-2 border-blue-200 rounded-lg max-w-md mx-auto">
+                        <div class="flex justify-center gap-2 md:gap-3 mb-3">
+                            <div class="w-2 h-2 md:w-3 md:h-3 bg-blue-500 rounded-full animate-bounce"></div>
+                            <div class="w-2 h-2 md:w-3 md:h-3 bg-blue-500 rounded-full animate-bounce" style="animation-delay:.2s"></div>
+                            <div class="w-2 h-2 md:w-3 md:h-3 bg-blue-500 rounded-full animate-bounce" style="animation-delay:.4s"></div>
+                        </div>
+                        <div class="text-center text-xs md:text-sm space-y-1">
+                            <div id="step1" class="text-gray-400">🟡 Step 1: Converting DOCX…</div>
+                            <div id="step2" class="text-gray-400">🟡 Step 2: AI Summarising…</div>
+                            <div id="step3" class="text-gray-400">🟡 Step 3: Generating Document…</div>
+                        </div>
+                        <p id="statusMsg" class="text-center text-xs text-gray-500 mt-2"></p>
+                        <p class="text-center text-xs text-blue-600 mt-1">
+                            ✅ You can safely close this tab — processing continues on the server.
+                        </p>
+                    </div>
+
+                    <!-- Existing Inputs -->
+                    <div class="mt-6 md:mt-8">
+                        <h4 class="font-semibold text-sm md:text-base mb-2 md:mb-3 text-gray-700">Uploaded Files:</h4>
+                        <div class="flex flex-col gap-2 md:gap-3">
+                            {% for file in input_files %}
+                            <div class="bg-gray-100 px-3 md:px-4 py-2 md:py-3 rounded-md text-xs md:text-sm break-all">
+                                📄 {{ loop.index }}. {{ file }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Divider -->
+                <div class="hidden md:block w-px bg-gray-300"></div>
+                <div class="md:hidden h-px bg-gray-300 my-3"></div>
+
+                <!-- Output Side -->
+                <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+                    <h3 class="text-center text-lg md:text-xl font-semibold mb-4 md:mb-6">Output Files</h3>
+
+                    {% if output_files %}
+                    <div id="outputList" class="flex flex-col gap-2 md:gap-3">
+                        {% for file in output_files %}
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-gray-100 px-3 md:px-4 py-2 md:py-3 rounded-md gap-2">
+                            <span class="text-xs md:text-sm break-all">📄 {{ file }}</span>
+                            <button onclick="downloadFile('{{ prospect_name }}','{{ file }}')"
+                                class="bg-[#2e7d32] text-white px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm rounded-md hover:bg-[#1b5e20] whitespace-nowrap">
+                                Download
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div id="outputList" class="text-center text-gray-500 py-8 md:py-12 text-sm md:text-base">
+                        No output files yet
+                    </div>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const prospectName = "{{ prospect_name }}";
+let selectedFiles = [];
+let uploadedFilesCount = {{ input_files|length if input_files else 0 }};
+let pollInterval = null;
+
+function handleDragOver(e) {
+    e.preventDefault();
+    e.currentTarget.classList.add('border-[#0072bc]', 'bg-blue-50');
+}
+function handleDragLeave(e) {
+    e.currentTarget.classList.remove('border-[#0072bc]', 'bg-blue-50');
+}
+function handleDrop(e) {
+    e.preventDefault();
+    e.currentTarget.classList.remove('border-[#0072bc]', 'bg-blue-50');
+    fileInput.files = e.dataTransfer.files;
+    handleFileSelect();
+}
+
+function handleFileSelect() {
+    const files = Array.from(fileInput.files);
+    selectedFiles = files;
+    if (!files.length) return;
+    if (!files.every(f => f.name.endsWith('.docx'))) {
+        alert('Only .docx files allowed');
+        fileInput.value = '';
+        selectedFiles = [];
+        return;
+    }
+    selectedFile.innerHTML = '';
+    files.forEach((f, idx) => {
+        const fileNumber = uploadedFilesCount + idx + 1;
+        selectedFile.innerHTML +=
+            `<div class="bg-blue-50 border-2 border-blue-200 px-3 md:px-4 py-2 md:py-3 rounded-md text-center break-all text-xs md:text-sm">
+             📄 ${fileNumber}. ${f.name}</div>`;
+    });
+    generateBtn.classList.remove("hidden");
+}
+
+// ── Step indicator helpers ──────────────────────────────────────────────────
+function resetSteps() {
+    document.getElementById('step1').innerHTML = '🟡 Step 1: Converting DOCX…';
+    document.getElementById('step2').innerHTML = '🟡 Step 2: AI Summarising…';
+    document.getElementById('step3').innerHTML = '🟡 Step 3: Generating Document…';
+    ['step1','step2','step3'].forEach(id => document.getElementById(id).className = 'text-gray-400');
+}
+
+function markStepActive(n) {
+    resetSteps();
+    for (let i = 1; i < n; i++) {
+        const el = document.getElementById(`step${i}`);
+        el.className = 'text-green-600 font-semibold';
+        el.innerHTML = el.innerHTML.replace('🟡','✅');
+    }
+    const el = document.getElementById(`step${n}`);
+    el.className = 'text-blue-600 font-semibold';
+    el.innerHTML = el.innerHTML.replace('🟡','⚙️');
+}
+
+function markAllDone() {
+    ['step1','step2','step3'].forEach(id => {
+        const el = document.getElementById(id);
+        el.className = 'text-green-600 font-semibold';
+        el.innerHTML = el.innerHTML.replace('🟡','✅').replace('⚙️','✅');
+    });
+}
+
+// ── Polling ─────────────────────────────────────────────────────────────────
+function startPolling(jobId) {
+    if (pollInterval) clearInterval(pollInterval);
+
+    pollInterval = setInterval(async () => {
+        try {
+            const res = await fetch(`/api/job-status/${jobId}`);
+            if (!res.ok) return;
+            const job = await res.json();
+
+            document.getElementById('statusMsg').textContent = job.message || '';
+
+            if ((job.status === 'running' || job.status === 'starting') && job.step >= 1) {
+                markStepActive(job.step);
+            }
+
+            if (job.status === 'done') {
+                clearInterval(pollInterval);
+                markAllDone();
+
+                setTimeout(() => {
+                    processingAnimation.classList.add("hidden");
+                    generateBtn.classList.remove("hidden");
+                    location.reload(); // reload to show new output file
+                }, 1200);
+            }
+
+            if (job.status === 'error') {
+                clearInterval(pollInterval);
+                alert('Generation failed: ' + job.message);
+                processingAnimation.classList.add("hidden");
+                generateBtn.classList.remove("hidden");
+            }
+
+        } catch(e) {
+            // network blip — keep polling
+        }
+    }, 3000);
+}
+
+// ── Main generate flow ───────────────────────────────────────────────────────
+async function startGeneration() {
+    if (!selectedFiles.length) return alert("Select files first");
+
+    generateBtn.classList.add("hidden");
+    processingAnimation.classList.remove("hidden");
+    resetSteps();
+
+    try {
+        for (let i = 0; i < selectedFiles.length; i++) {
+            const fd = new FormData();
+            fd.append("file", selectedFiles[i]);
+            fd.append("prospect_name", prospectName);
+            await fetch("/upload", { method: "POST", body: fd });
+        }
+
+        const r = await fetch("/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prospect_name: prospectName })
+        });
+
+        if (!r.ok) throw new Error(await r.text());
+        const data = await r.json();
+        if (!data.job_id) throw new Error('No job ID returned');
+
+        // Poll for status — works even if user switches/closes tab
+        startPolling(data.job_id);
+
+    } catch(e) {
+        alert("Error: " + e.message);
+        processingAnimation.classList.add("hidden");
+        generateBtn.classList.remove("hidden");
+    }
+}
+
+function downloadFile(p, f) {
+    location.href = `/download/${p}/output/${f}`;
+}
+</script>
+
+</body>
+</html>
