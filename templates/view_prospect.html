@@ -73,10 +73,14 @@
                     <!-- Existing Inputs -->
                     <div class="mt-6 md:mt-8">
                         <h4 class="font-semibold text-sm md:text-base mb-2 md:mb-3 text-gray-700">Uploaded Files:</h4>
-                        <div class="flex flex-col gap-2 md:gap-3">
+                        <div id="inputFilesList" class="flex flex-col gap-2 md:gap-3">
                             {% for file in input_files %}
-                            <div class="bg-gray-100 px-3 md:px-4 py-2 md:py-3 rounded-md text-xs md:text-sm break-all">
-                                📄 {{ loop.index }}. {{ file }}
+                            <div class="flex items-center justify-between bg-gray-100 px-3 md:px-4 py-2 md:py-3 rounded-md gap-2" id="input-file-{{ loop.index }}">
+                                <span class="text-xs md:text-sm break-all flex-1">📄 {{ loop.index }}. {{ file }}</span>
+                                <button onclick="deleteInputFile('{{ file }}', 'input-file-{{ loop.index }}')"
+                                    class="bg-red-600 text-white px-2 md:px-3 py-1 md:py-1.5 text-xs rounded-md hover:bg-red-700 whitespace-nowrap flex-shrink-0">
+                                    🗑 Delete
+                                </button>
                             </div>
                             {% endfor %}
                         </div>
@@ -96,10 +100,16 @@
                         {% for file in output_files %}
                         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-gray-100 px-3 md:px-4 py-2 md:py-3 rounded-md gap-2">
                             <span class="text-xs md:text-sm break-all">📄 {{ file }}</span>
-                            <button onclick="downloadFile('{{ prospect_name }}','{{ file }}')"
-                                class="bg-[#2e7d32] text-white px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm rounded-md hover:bg-[#1b5e20] whitespace-nowrap">
-                                Download
-                            </button>
+                            <div class="flex gap-2 flex-shrink-0">
+                                <button onclick="previewFile('{{ prospect_name }}','output','{{ file }}')"
+                                    class="bg-[#0072bc] text-white px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm rounded-md hover:bg-[#005a94] whitespace-nowrap">
+                                    👁 Preview
+                                </button>
+                                <button onclick="downloadFile('{{ prospect_name }}','{{ file }}')"
+                                    class="bg-[#2e7d32] text-white px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm rounded-md hover:bg-[#1b5e20] whitespace-nowrap">
+                                    ⬇ Download
+                                </button>
+                            </div>
                         </div>
                         {% endfor %}
                     </div>
@@ -112,6 +122,20 @@
 
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<div id="previewModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-[999] flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col">
+        <div class="flex justify-between items-center px-4 md:px-6 py-3 md:py-4 border-b border-gray-200 bg-[#0072bc] rounded-t-xl">
+            <span id="previewTitle" class="text-white font-semibold text-sm md:text-base truncate flex-1 mr-4"></span>
+            <button onclick="closePreview()"
+                class="text-white bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1.5 rounded-md text-sm font-bold flex-shrink-0">
+                ✕ Close
+            </button>
+        </div>
+        <iframe id="previewIframe" class="flex-1 w-full rounded-b-xl border-0" src=""></iframe>
     </div>
 </div>
 
@@ -261,6 +285,46 @@ async function startGeneration() {
 
 function downloadFile(p, f) {
     location.href = `/download/${p}/output/${f}`;
+}
+
+async function deleteInputFile(filename, rowId) {
+    if (!confirm(`Delete file "${filename}"?`)) return;
+    try {
+        const res = await fetch(`/delete-file/${prospectName}/input/${filename}`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+            const row = document.getElementById(rowId);
+            if (row) row.remove();
+            // Re-number remaining files
+            const rows = document.querySelectorAll('#inputFilesList > div');
+            rows.forEach((r, idx) => {
+                const span = r.querySelector('span');
+                if (span) {
+                    span.textContent = span.textContent.replace(/^\📄 \d+\./, `📄 ${idx + 1}.`);
+                }
+            });
+            uploadedFilesCount = Math.max(0, uploadedFilesCount - 1);
+        } else {
+            alert('Failed to delete file.');
+        }
+    } catch(e) {
+        alert('Error deleting file: ' + e.message);
+    }
+}
+
+function previewFile(prospect, folder, filename) {
+    const modal = document.getElementById('previewModal');
+    const iframe = document.getElementById('previewIframe');
+    const title = document.getElementById('previewTitle');
+    title.textContent = filename;
+    iframe.src = `/preview/${prospect}/${folder}/${filename}`;
+    modal.classList.remove('hidden');
+}
+
+function closePreview() {
+    const modal = document.getElementById('previewModal');
+    modal.classList.add('hidden');
+    document.getElementById('previewIframe').src = '';
 }
 </script>
 

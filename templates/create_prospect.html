@@ -35,6 +35,7 @@
                 <div class="w-full md:w-3/5 relative">
                     <input id="prospectName" type="text" placeholder="Enter Prospect Name"
                         oninput="filterSuggestions()" onfocus="filterSuggestions()"
+                        onkeydown="if(event.key==='Enter'){event.preventDefault();saveProspect();}"
                         class="w-full p-2.5 md:p-3 text-sm md:text-lg rounded-lg border border-gray-300">
                     <div id="suggestions"
                         class="hidden absolute top-full left-0 right-0 bg-white border rounded shadow max-h-[300px] overflow-y-auto z-50"></div>
@@ -98,14 +99,34 @@
 
                     <div id="outputFilesList" class="hidden w-full max-w-md mb-4 md:mb-6"></div>
 
-                    <button id="downloadBtn" onclick="downloadLatest()"
-                        class="hidden bg-[#2e7d32] text-white px-5 md:px-8 py-2.5 md:py-3 text-sm md:text-lg rounded-lg hover:bg-[#1b5e20]">
-                        Download
-                    </button>
+                    <div class="flex gap-3">
+                        <button id="previewBtn" onclick="previewLatest()"
+                            class="hidden bg-[#0072bc] text-white px-5 md:px-8 py-2.5 md:py-3 text-sm md:text-lg rounded-lg hover:bg-[#005a94]">
+                            👁 Preview
+                        </button>
+                        <button id="downloadBtn" onclick="downloadLatest()"
+                            class="hidden bg-[#2e7d32] text-white px-5 md:px-8 py-2.5 md:py-3 text-sm md:text-lg rounded-lg hover:bg-[#1b5e20]">
+                            ⬇ Download
+                        </button>
+                    </div>
                 </div>
 
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<div id="previewModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-[999] flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col">
+        <div class="flex justify-between items-center px-4 md:px-6 py-3 md:py-4 border-b border-gray-200 bg-[#0072bc] rounded-t-xl">
+            <span id="previewTitle" class="text-white font-semibold text-sm md:text-base truncate flex-1 mr-4"></span>
+            <button onclick="closePreview()"
+                class="text-white bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1.5 rounded-md text-sm font-bold flex-shrink-0">
+                ✕ Close
+            </button>
+        </div>
+        <iframe id="previewIframe" class="flex-1 w-full rounded-b-xl border-0" src=""></iframe>
     </div>
 </div>
 
@@ -115,6 +136,7 @@ let latestOutputFile = '';
 let currentProspectName = '';
 let uploadedFilesCount = 0;
 let pollInterval = null;
+let prospectSaved = false;  // guard against double-save
 
 async function loadProspects() {
     const res = await fetch("/api/prospects");
@@ -123,7 +145,7 @@ async function loadProspects() {
 loadProspects();
 
 function filterSuggestions() {
-    const v = prospectName.value.toLowerCase();
+    const v = document.getElementById('prospectName').value.toLowerCase();
     if (!v) return suggestions.classList.add("hidden");
     const matches = existingProspects.filter(p => p.prospect_name.toLowerCase().includes(v));
     if (!matches.length) return suggestions.classList.add("hidden");
@@ -137,14 +159,25 @@ function filterSuggestions() {
 }
 
 function selectSuggestion(n, d) {
-    prospectName.value = n;
+    document.getElementById('prospectName').value = n;
     suggestions.classList.add("hidden");
     alert(`⚠️ "${n}" already exists.`);
 }
 
 async function saveProspect() {
-    if (!prospectName.value.trim()) return alert("Enter name");
-    currentProspectName = prospectName.value.trim();
+    if (prospectSaved) return;  // prevent double-call
+    const nameInput = document.getElementById('prospectName');
+    if (!nameInput.value.trim()) return alert("Enter name");
+    currentProspectName = nameInput.value.trim();
+
+    // Check if already exists
+    const exists = existingProspects.find(p => p.prospect_name.toLowerCase() === currentProspectName.toLowerCase());
+    if (exists) {
+        alert(`⚠️ Prospect "${currentProspectName}" already exists. Please use a different name or go back to view it.`);
+        return;
+    }
+
+    prospectSaved = true;
 
     await fetch("/save-prospect", {
         method: "POST",
@@ -161,7 +194,7 @@ async function saveProspect() {
     }
 
     ioSection.classList.remove("hidden");
-    prospectName.disabled = true;
+    nameInput.disabled = true;
 }
 
 function handleDragOver(e) {
@@ -245,6 +278,7 @@ function startPolling(jobId, totalFilesAfterUpload) {
                     outputMessage.classList.add("hidden");
                     outputFilesList.classList.remove("hidden");
                     downloadBtn.classList.remove("hidden");
+                    previewBtn.classList.remove("hidden");
                     generateBtn.classList.remove("hidden");
 
                     uploadedFilesCount = totalFilesAfterUpload;
@@ -317,6 +351,24 @@ async function startGeneration() {
 function downloadLatest() {
     if (latestOutputFile)
         location.href = `/download/${currentProspectName}/output/${latestOutputFile}`;
+}
+
+function previewLatest() {
+    if (latestOutputFile) previewFile(currentProspectName, 'output', latestOutputFile);
+}
+
+function previewFile(prospect, folder, filename) {
+    const modal = document.getElementById('previewModal');
+    const iframe = document.getElementById('previewIframe');
+    const title = document.getElementById('previewTitle');
+    title.textContent = filename;
+    iframe.src = `/preview/${prospect}/${folder}/${filename}`;
+    modal.classList.remove('hidden');
+}
+
+function closePreview() {
+    document.getElementById('previewModal').classList.add('hidden');
+    document.getElementById('previewIframe').src = '';
 }
 
 document.addEventListener("click", e => {

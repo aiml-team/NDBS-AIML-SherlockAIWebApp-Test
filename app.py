@@ -336,6 +336,44 @@ def view_prospect(prospect_name):
                            input_files=input_files,
                            output_files=output_files)
 
+@app.route('/delete-file/<prospect_name>/<folder>/<filename>', methods=['POST'])
+def delete_file(prospect_name, folder, filename):
+    try:
+        container_client = get_container_client()
+        blob_path = f"{prospect_name}/{folder}/{filename}"
+        container_client.delete_blob(blob_path)
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/preview/<prospect_name>/<folder>/<filename>')
+def preview_file(prospect_name, folder, filename):
+    """Convert DOCX to HTML for in-browser preview using python-docx + mammoth"""
+    try:
+        blob_path = f"{prospect_name}/{folder}/{filename}"
+        file_data = download_from_azure(blob_path)
+        if not file_data:
+            return "File not found", 404
+        import mammoth
+        result = mammoth.convert_to_html(io.BytesIO(file_data))
+        html_content = result.value
+        # Wrap in a styled page
+        full_html = f"""<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<style>
+  body {{ font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; line-height: 1.6; color: #333; }}
+  table {{ border-collapse: collapse; width: 100%; margin: 1em 0; }}
+  td, th {{ border: 1px solid #ccc; padding: 8px 12px; }}
+  th {{ background: #f0f0f0; }}
+  img {{ max-width: 100%; }}
+  h1,h2,h3,h4 {{ color: #0072bc; }}
+</style>
+</head><body>{html_content}</body></html>"""
+        return full_html
+    except Exception as e:
+        return f"Preview error: {str(e)}", 500
+
 @app.route('/delete-prospect/<prospect_name>', methods=['POST'])
 def delete_prospect(prospect_name):
     try:

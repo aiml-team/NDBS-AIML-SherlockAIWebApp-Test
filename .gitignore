@@ -1,20 +1,15 @@
-# Environment
-.env
-
+cat >> .gitignore <<'EOF'
 # Python
 __pycache__/
-*.py[cod]
-*.so
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv/
 venv/
-env/
+sherlockai_web_app_venv/
+*.log
 
-# Flask
-instance/
-
-# IDEs
-.vscode/
-.idea/
-*.swp
-
-# OS
+# macOS
 .DS_Store
+EOF
