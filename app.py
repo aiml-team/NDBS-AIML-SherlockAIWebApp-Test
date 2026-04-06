@@ -306,12 +306,13 @@ def generate():
         return jsonify({'success': False, 'error': 'No prospect name provided'}), 400
 
     input_files = get_prospect_files(prospect_name, 'input')
-    docx_files = [f for f in input_files if f.lower().endswith('.docx')]
+    supported_files = [f for f in input_files
+                       if f.lower().endswith('.docx') or is_vtt_file(f)]
 
-    if not docx_files:
-        return jsonify({'success': False, 'error': 'No DOCX files found'}), 400
+    if not supported_files:
+        return jsonify({'success': False, 'error': 'No supported files found (DOCX, VTT, TXT)'}), 400
 
-    latest_file = docx_files[-1]
+    latest_file = supported_files[-1]
     file_data = download_from_azure(f"{prospect_name}/input/{latest_file}")
 
     if not file_data:
