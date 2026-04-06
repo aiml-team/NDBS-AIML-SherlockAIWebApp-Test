@@ -885,15 +885,19 @@
                     <!-- Drop zone -->
                     <div class="drop-zone" id="dropZone" ondrop="handleDrop(event)" ondragover="handleDragOver(event)"
                         ondragleave="handleDragLeave(event)">
-                        <input type="file" id="fileInput" accept=".docx" multiple onchange="handleFileSelect()">
+                        <input type="file" id="fileInput" accept=".docx,.vtt,.txt" multiple onchange="handleFileSelect()">
                         <div class="drop-icon-wrap">
                             <svg viewBox="0 0 24 24">
                                 <path d="M12 3L8 8h3v8h2V8h3L12 3zM5 18v2h14v-2H5z" />
                             </svg>
                         </div>
                         <div class="drop-title">Click or drag &amp; drop to add files</div>
-                        <div class="drop-hint">Multiple .docx files allowed</div>
-                        <div class="fmt-row"><span class="fmt-tag">DOCX</span></div>
+                        <div class="drop-hint">DOCX transcripts or VTT Teams recordings — multiple files allowed</div>
+                        <div class="fmt-row">
+                            <span class="fmt-tag">DOCX</span>
+                            <span class="fmt-tag">VTT</span>
+                            <span class="fmt-tag">TXT</span>
+                        </div>
                     </div>
 
                     <div id="selectedFile"></div>
@@ -1020,12 +1024,20 @@
             handleFileSelect();
         }
 
+        const ALLOWED_EXTS = ['.docx', '.vtt', '.txt'];
+        function fileIcon(name) {
+            if (name.endsWith('.vtt')) return '🎙';
+            if (name.endsWith('.txt')) return '📝';
+            return '📄';
+        }
+
         function handleFileSelect() {
             const files = Array.from(document.getElementById('fileInput').files);
             selectedFiles = files;
             if (!files.length) return;
-            if (!files.every(f => f.name.endsWith('.docx'))) {
-                alert('Only .docx files allowed');
+            const invalid = files.filter(f => !ALLOWED_EXTS.some(ext => f.name.toLowerCase().endsWith(ext)));
+            if (invalid.length) {
+                alert(`Unsupported file type: ${invalid.map(f => f.name).join(', ')}\nAllowed: .docx, .vtt, .txt`);
                 document.getElementById('fileInput').value = '';
                 selectedFiles = [];
                 return;
@@ -1036,7 +1048,7 @@
                 const fileNumber = uploadedFilesCount + idx + 1;
                 container.innerHTML +=
                     `<div class="sel-file-row">
-         <span>📄</span>
+         <span>${fileIcon(f.name)}</span>
          <span class="sel-file-name">${fileNumber}. ${f.name}</span>
        </div>`;
             });

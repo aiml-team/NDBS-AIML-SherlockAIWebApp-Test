@@ -512,13 +512,17 @@
               ondrop="handleDrop(event)"
               ondragover="handleDragOver(event)"
               ondragleave="handleDragLeave(event)">
-              <input type="file" id="fileInput" accept=".docx" multiple onchange="handleFileSelect()">
+              <input type="file" id="fileInput" accept=".docx,.vtt,.txt" multiple onchange="handleFileSelect()">
               <div class="drop-icon-wrap">
                 <svg viewBox="0 0 24 24"><path d="M12 3L8 8h3v8h2V8h3L12 3zM5 18v2h14v-2H5z"/></svg>
               </div>
-              <div class="drop-title">Drop DOCX files or click to browse</div>
-              <div class="drop-hint">Multiple files allowed</div>
-              <div class="fmt-row"><span class="fmt-tag">DOCX</span></div>
+              <div class="drop-title">Drop files or click to browse</div>
+              <div class="drop-hint">DOCX transcripts or VTT Teams recordings — multiple files allowed</div>
+              <div class="fmt-row">
+                <span class="fmt-tag">DOCX</span>
+                <span class="fmt-tag">VTT</span>
+                <span class="fmt-tag">TXT</span>
+              </div>
             </div>
 
             <div id="selectedFiles"></div>
@@ -672,14 +676,28 @@ function handleDrop(e) {
   handleFileSelect();
 }
 
+const ALLOWED_EXTS = ['.docx', '.vtt', '.txt'];
+function fileIcon(name) {
+  if (name.endsWith('.vtt')) return '🎙';
+  if (name.endsWith('.txt')) return '📝';
+  return '📄';
+}
+
 function handleFileSelect() {
+  const files = [...document.getElementById('fileInput').files];
+  const invalid = files.filter(f => !ALLOWED_EXTS.some(ext => f.name.toLowerCase().endsWith(ext)));
+  if (invalid.length) {
+    alert(`Unsupported file type: ${invalid.map(f => f.name).join(', ')}\nAllowed: .docx, .vtt, .txt`);
+    document.getElementById('fileInput').value = '';
+    return;
+  }
   const selectedFiles = document.getElementById('selectedFiles');
   selectedFiles.innerHTML = "";
-  [...document.getElementById('fileInput').files].forEach((f, idx) => {
+  files.forEach((f, idx) => {
     const fileNumber = uploadedFilesCount + idx + 1;
     selectedFiles.innerHTML +=
       `<div class="sel-file-row">
-         <span class="sel-file-icon">📄</span>
+         <span class="sel-file-icon">${fileIcon(f.name)}</span>
          <span class="sel-file-name">${fileNumber}. ${f.name}</span>
        </div>`;
   });
