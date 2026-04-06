@@ -1,15 +1,12 @@
-cat >> .gitignore <<'EOF'
 # Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-.env
-.venv/
+*.py[cod]
+
+# Virtualenvs
 venv/
+.venv/
+env/
 sherlockai_web_app_venv/
-*.log
 
 # macOS
 .DS_Store
-EOFtext.json

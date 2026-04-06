@@ -1,332 +1,1193 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>View Prospect | Sherlock AI</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 h-screen overflow-hidden">
 
-<div class="h-screen flex flex-col">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ prospect_name }} | Sherlock AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #f5f7fa;
+            --bg2: #ffffff;
+            --bg3: #f0f3f8;
+            --border: #e2e8f0;
+            --border2: #cbd5e1;
+            --blue: #2563eb;
+            --blue-lt: #eff6ff;
+            --blue-mid: #bfdbfe;
+            --blue-dark: #1d4ed8;
+            --teal: #0891b2;
+            --teal-lt: #ecfeff;
+            --green: #059669;
+            --green-lt: #ecfdf5;
+            --green-mid: #a7f3d0;
+            --amber: #d97706;
+            --amber-lt: #fffbeb;
+            --red: #dc2626;
+            --red-lt: #fef2f2;
+            --text: #0f172a;
+            --text2: #475569;
+            --text3: #94a3b8;
+            --white: #ffffff;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.07), 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        html, body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Header ── */
+        header {
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            padding: 0 40px;
+            height: 62px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 200;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--blue-lt);
+            color: var(--blue);
+            border: 1px solid var(--blue-mid);
+            padding: 7px 14px;
+            border-radius: 8px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.12s;
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            background: var(--blue);
+            color: white;
+            border-color: var(--blue);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+        }
+
+        .logo-mark {
+            width: 34px;
+            height: 34px;
+            background: linear-gradient(135deg, var(--blue), var(--teal));
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+        }
+
+        .logo-mark svg {
+            width: 17px;
+            height: 17px;
+            fill: white;
+        }
+
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+
+        .logo-name {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--text);
+            letter-spacing: -0.01em;
+        }
+
+        .logo-sub {
+            font-size: 9.5px;
+            color: var(--text3);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .header-logo-img {
+            height: 32px;
+        }
+
+        /* ── Hero ── */
+        .hero {
+            background: linear-gradient(135deg, #1e40af 0%, #0891b2 60%, #0d9488 100%);
+            padding: 28px 40px 26px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .hero-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .hero-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 10.5px;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            padding: 5px 13px;
+            border-radius: 20px;
+            margin-bottom: 8px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .hero-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: #fff;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 700px;
+        }
+
+        /* ── Main ── */
+        main {
+            flex: 1;
+            max-width: 1100px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 16px 40px 16px;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        /* ── IO Card ── */
+        .card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .io-grid {
+            display: grid;
+            grid-template-columns: 1fr 1px 1fr;
+            grid-template-rows: 1fr;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .io-divider {
+            background: var(--border);
+        }
+
+        .io-panel {
+            padding: 20px 24px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            overflow-x: hidden;
+            height: 100%;
+        }
+        .io-panel::-webkit-scrollbar { width: 5px; }
+        .io-panel::-webkit-scrollbar-track { background: transparent; }
+        .io-panel::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+        .io-panel-title {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--text2);
+            text-transform: uppercase;
+            letter-spacing: 0.09em;
+            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .io-panel-title-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* ── Drop zone ── */
+        .drop-zone {
+            border: 2px dashed var(--border2);
+            border-radius: 12px;
+            padding: 28px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--bg);
+            position: relative;
+            margin-bottom: 14px;
+        }
+
+        .drop-zone:hover,
+        .drop-zone.drag-over {
+            border-color: var(--blue);
+            background: var(--blue-lt);
+        }
+
+        .drop-zone input {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        .drop-icon-wrap {
+            width: 42px;
+            height: 42px;
+            border-radius: 11px;
+            background: var(--white);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .drop-icon-wrap svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--blue);
+        }
+
+        .drop-title {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 3px;
+        }
+
+        .drop-hint {
+            font-size: 11.5px;
+            color: var(--text2);
+            margin-bottom: 10px;
+        }
+
+        .fmt-row {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+        }
+
+        .fmt-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9.5px;
+            font-weight: 500;
+            padding: 3px 9px;
+            border-radius: 5px;
+            border: 1px solid var(--border);
+            color: var(--text2);
+            background: var(--white);
+        }
+
+        /* ── Selected files ── */
+        #selectedFile {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .sel-file-row {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            background: var(--blue-lt);
+            border: 1px solid var(--blue-mid);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12.5px;
+            animation: popIn 0.18s ease;
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: translateY(-3px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .sel-file-name {
+            flex: 1;
+            color: var(--text);
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* ── Generate button ── */
+        #generateBtn {
+            display: none;
+            width: 100%;
+            padding: 12px 18px;
+            background: linear-gradient(135deg, var(--green), #047857);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.15s;
+            box-shadow: 0 3px 12px rgba(5, 150, 105, 0.3);
+            margin-bottom: 14px;
+        }
+
+        #generateBtn.visible {
+            display: flex;
+        }
+
+        #generateBtn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 16px rgba(5, 150, 105, 0.4);
+        }
+
+        #generateBtn svg {
+            width: 15px;
+            height: 15px;
+            fill: currentColor;
+        }
+
+        /* ── Processing animation ── */
+        #processingAnimation {
+            display: none;
+            margin-bottom: 14px;
+            background: var(--blue-lt);
+            border: 1px solid var(--blue-mid);
+            border-radius: 12px;
+            padding: 16px 18px;
+        }
+
+        .bounce-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .dot {
+            width: 9px;
+            height: 9px;
+            background: var(--blue);
+            border-radius: 50%;
+            animation: bounce 1.2s infinite;
+        }
+
+        .dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            80%,
+            100% {
+                transform: translateY(0);
+            }
+
+            40% {
+                transform: translateY(-8px);
+            }
+        }
+
+        .step-list {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .step-row {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            font-size: 12.5px;
+            color: var(--text3);
+            transition: color 0.2s;
+        }
+
+        .step-row.active {
+            color: var(--blue);
+            font-weight: 600;
+        }
+
+        .step-row.done {
+            color: var(--green);
+            font-weight: 600;
+        }
+
+        #statusMsg {
+            font-size: 11px;
+            color: var(--text3);
+            text-align: center;
+            margin-top: 10px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .server-note {
+            font-size: 11px;
+            color: var(--blue);
+            text-align: center;
+            margin-top: 6px;
+        }
+
+        /* ── Input file list ── */
+        .section-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 10px;
+            margin-top: 16px;
+        }
+
+        #inputFilesList {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .input-file-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 9px 12px;
+            border-radius: 9px;
+            transition: border-color 0.12s;
+        }
+
+        .input-file-row:hover {
+            border-color: var(--border2);
+        }
+
+        .input-file-name {
+            font-size: 12.5px;
+            color: var(--text);
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .delete-btn {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--red-lt);
+            color: var(--red);
+            border: 1px solid #fecaca;
+            padding: 5px 10px;
+            border-radius: 7px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 11.5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.12s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .delete-btn:hover {
+            background: var(--red);
+            color: white;
+            border-color: var(--red);
+        }
+
+        /* ── Output panel ── */
+        #outputList {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .output-file-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 10px 12px;
+            border-radius: 10px;
+            transition: border-color 0.12s;
+            flex-shrink: 0;
+        }
+
+        .output-file-row:hover {
+            border-color: var(--border2);
+        }
+
+        .output-file-name {
+            font-size: 12px;
+            color: var(--text);
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-family: 'JetBrains Mono', monospace;
+            min-width: 0;
+        }
+
+        .output-actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+            align-items: center;
+        }
+
+        .btn-preview {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--blue-lt);
+            color: var(--blue);
+            border: 1px solid var(--blue-mid);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.12s;
+            white-space: nowrap;
+        }
+
+        .btn-preview:hover {
+            background: var(--blue);
+            color: white;
+            border-color: var(--blue);
+        }
+
+        .btn-download {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--green);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 7px rgba(5, 150, 105, 0.25);
+            transition: all 0.12s;
+            white-space: nowrap;
+        }
+
+        .btn-download:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .empty-output {
+            color: var(--text3);
+            font-size: 13px;
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        .empty-output svg {
+            width: 32px;
+            height: 32px;
+            stroke: var(--border2);
+            fill: none;
+            margin: 0 auto 10px;
+            display: block;
+        }
+
+        /* ── Preview Modal ── */
+        #previewModal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        #previewModal.open {
+            display: flex;
+        }
+
+        .modal-inner {
+            background: var(--white);
+            border-radius: 14px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+            width: 100%;
+            max-width: 960px;
+            height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .modal-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            background: linear-gradient(90deg, #1e40af, #0891b2);
+            border-radius: 14px 14px 0 0;
+        }
+
+        #previewTitle {
+            color: white;
+            font-weight: 600;
+            font-size: 13.5px;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-right: 14px;
+        }
+
+        .modal-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 7px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+            transition: background 0.15s;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        #previewIframe {
+            flex: 1;
+            width: 100%;
+            border: none;
+        }
+
+        /* ── Footer ── */
+        footer {
+            background: var(--white);
+            border-top: 1px solid var(--border);
+            padding: 10px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .footer-copy {
+            font-size: 11px;
+            color: var(--text3);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .chip {
+            font-size: 10.5px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 0.04em;
+        }
+
+        .chip-blue {
+            color: var(--blue);
+            border-color: var(--blue-mid);
+            background: var(--blue-lt);
+        }
+
+        .chip-teal {
+            color: var(--teal);
+            border-color: #a5f3fc;
+            background: var(--teal-lt);
+        }
+
+        .footer-chips {
+            display: flex;
+            gap: 6px;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                padding: 0 16px;
+            }
+
+            .hero {
+                padding: 22px 16px 20px;
+            }
+
+            main {
+                padding: 18px 16px 48px;
+            }
+
+            .io-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .io-divider {
+                display: block;
+                height: 1px;
+                width: 100%;
+            }
+
+            footer {
+                padding: 14px 16px;
+                flex-direction: column;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
     <!-- Header -->
-    <div class="bg-white border-b border-gray-300 px-4 md:px-12 py-3 md:py-5 flex justify-between items-center">
-        <button onclick="window.location.href='/'"
-            class="bg-[#0072bc] text-white h-9 md:h-10 px-3 md:px-5 rounded-md text-sm md:text-base hover:bg-[#005a94]">
-            ← Back
-        </button>
-        <span class="absolute left-1/2 -translate-x-1/2 text-xl md:text-3xl font-semibold text-[#0072bc]">
-            Sherlock AI
-        </span>
-        <img src="{{ url_for('static', filename='Logo-Blue.png') }}" class="h-7 md:h-9" alt="Logo">
+    <header>
+        <div class="header-left">
+            <a href="/" class="back-btn">← Back</a>
+            <div class="logo">
+                <div class="logo-mark">
+                    <svg viewBox="0 0 18 18">
+                        <rect x="1" y="1" width="7" height="7" rx="1.5" />
+                        <rect x="10" y="1" width="7" height="7" rx="1.5" opacity="0.7" />
+                        <rect x="1" y="10" width="7" height="7" rx="1.5" opacity="0.7" />
+                        <rect x="10" y="10" width="7" height="7" rx="1.5" opacity="0.4" />
+                    </svg>
+                </div>
+                <div class="logo-text">
+                    <div class="logo-name">Sherlock AI</div>
+                    <div class="logo-sub">Document Pipeline</div>
+                </div>
+            </div>
+        </div>
+        <div class="header-right">
+            <img src="{{ url_for('static', filename='Logo-Blue.png') }}" class="header-logo-img" alt="NTT Data Logo">
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <div class="hero">
+        <div class="hero-inner">
+            <div class="hero-eyebrow">
+                <svg width="7" height="7" viewBox="0 0 8 8" fill="currentColor">
+                    <circle cx="4" cy="4" r="4" />
+                </svg>
+                Prospect View
+            </div>
+            <h1 class="hero-title">{{ prospect_name }}</h1>
+        </div>
     </div>
 
-    <!-- Content -->
-    <div class="flex-1 p-3 md:p-6 flex justify-center overflow-hidden">
-        <div class="w-full max-w-7xl bg-gray-200 border-2 border-gray-300 rounded-2xl p-4 md:p-10 flex flex-col">
+    <!-- Main -->
+    <main>
+        <div class="card">
+            <div class="io-grid">
 
-            <h2 class="text-center text-xl md:text-3xl font-semibold mb-4 md:mb-6">
-                {{ prospect_name }}
-            </h2>
+                <!-- ── Input Panel ── -->
+                <div class="io-panel">
+                    <div class="io-panel-title">
+                        <span class="io-panel-title-dot" style="background:var(--blue);"></span>
+                        Input Files
+                    </div>
 
-            <!-- IO Container -->
-            <div class="bg-white rounded-xl shadow-lg flex flex-col md:flex-row gap-6 md:gap-8 flex-1 overflow-hidden p-4 md:p-8">
+                    <!-- Drop zone -->
+                    <div class="drop-zone" id="dropZone" ondrop="handleDrop(event)" ondragover="handleDragOver(event)"
+                        ondragleave="handleDragLeave(event)">
+                        <input type="file" id="fileInput" accept=".docx" multiple onchange="handleFileSelect()">
+                        <div class="drop-icon-wrap">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 3L8 8h3v8h2V8h3L12 3zM5 18v2h14v-2H5z" />
+                            </svg>
+                        </div>
+                        <div class="drop-title">Click or drag &amp; drop to add files</div>
+                        <div class="drop-hint">Multiple .docx files allowed</div>
+                        <div class="fmt-row"><span class="fmt-tag">DOCX</span></div>
+                    </div>
 
-                <!-- Input Side -->
-                <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
-                    <h3 class="text-center text-lg md:text-xl font-semibold mb-4 md:mb-6">Input Files</h3>
+                    <div id="selectedFile"></div>
 
-                    <label for="fileInput"
-                        class="block w-full max-w-md mx-auto border-2 border-dashed border-gray-300 p-6 md:p-8 text-center rounded-lg cursor-pointer hover:border-[#0072bc] hover:text-[#0072bc] transition text-sm md:text-base"
-                        ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
-                        Click or Drag & Drop to add more files<br>
-                        <span class="text-xs md:text-sm text-gray-500">(Multiple files allowed)</span>
-                        <input type="file" id="fileInput" hidden accept=".docx" multiple onchange="handleFileSelect()">
-                    </label>
-
-                    <div id="selectedFile" class="mb-3 mt-3"></div>
-
-                    <button id="generateBtn" onclick="startGeneration()"
-                        class="hidden mx-auto bg-[#2e7d32] text-white px-5 md:px-8 py-2.5 md:py-3 text-sm md:text-lg rounded-lg hover:bg-[#1b5e20]">
+                    <button id="generateBtn" class="visible" onclick="startGeneration()" style="display:none;">
+                        <svg viewBox="0 0 20 20">
+                            <path d="M4 4l12 6-12 6V4z" />
+                        </svg>
                         Generate Document
                     </button>
 
-                    <!-- Processing Animation -->
-                    <div id="processingAnimation"
-                        class="hidden mt-4 md:mt-6 p-3 md:p-4 bg-blue-50 border-2 border-blue-200 rounded-lg max-w-md mx-auto">
-                        <div class="flex justify-center gap-2 md:gap-3 mb-3">
-                            <div class="w-2 h-2 md:w-3 md:h-3 bg-blue-500 rounded-full animate-bounce"></div>
-                            <div class="w-2 h-2 md:w-3 md:h-3 bg-blue-500 rounded-full animate-bounce" style="animation-delay:.2s"></div>
-                            <div class="w-2 h-2 md:w-3 md:h-3 bg-blue-500 rounded-full animate-bounce" style="animation-delay:.4s"></div>
+                    <div id="processingAnimation">
+                        <div class="bounce-dots">
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
                         </div>
-                        <div class="text-center text-xs md:text-sm space-y-1">
-                            <div id="step1" class="text-gray-400">🟡 Step 1: Converting DOCX…</div>
-                            <div id="step2" class="text-gray-400">🟡 Step 2: AI Summarising…</div>
-                            <div id="step3" class="text-gray-400">🟡 Step 3: Generating Document…</div>
+                        <div class="step-list">
+                            <div class="step-row" id="step1">🟡 Step 1: Converting DOCX…</div>
+                            <div class="step-row" id="step2">🟡 Step 2: AI Summarising…</div>
+                            <div class="step-row" id="step3">🟡 Step 3: Generating Document…</div>
                         </div>
-                        <p id="statusMsg" class="text-center text-xs text-gray-500 mt-2"></p>
-                        <p class="text-center text-xs text-blue-600 mt-1">
-                            ✅ You can safely close this tab — processing continues on the server.
-                        </p>
+                        <p id="statusMsg"></p>
+                        <p class="server-note">✅ You can safely close this tab — processing continues on the server.</p>
                     </div>
 
-                    <!-- Existing Inputs -->
-                    <div class="mt-6 md:mt-8">
-                        <h4 class="font-semibold text-sm md:text-base mb-2 md:mb-3 text-gray-700">Uploaded Files:</h4>
-                        <div id="inputFilesList" class="flex flex-col gap-2 md:gap-3">
-                            {% for file in input_files %}
-                            <div class="flex items-center justify-between bg-gray-100 px-3 md:px-4 py-2 md:py-3 rounded-md gap-2" id="input-file-{{ loop.index }}">
-                                <span class="text-xs md:text-sm break-all flex-1">📄 {{ loop.index }}. {{ file }}</span>
-                                <button onclick="deleteInputFile('{{ file }}', 'input-file-{{ loop.index }}')"
-                                    class="bg-red-600 text-white px-2 md:px-3 py-1 md:py-1.5 text-xs rounded-md hover:bg-red-700 whitespace-nowrap flex-shrink-0">
-                                    🗑 Delete
-                                </button>
-                            </div>
-                            {% endfor %}
+                    <!-- Existing uploaded files -->
+                    {% if input_files %}
+                    <div class="section-label">Uploaded Files</div>
+                    <div id="inputFilesList">
+                        {% for file in input_files %}
+                        <div class="input-file-row" id="input-file-{{ loop.index }}">
+                            <span class="input-file-name">📄 {{ loop.index }}. {{ file }}</span>
+                            <button class="delete-btn"
+                                onclick="deleteInputFile('{{ file }}', 'input-file-{{ loop.index }}')">🗑
+                                Delete</button>
                         </div>
+                        {% endfor %}
                     </div>
+                    {% else %}
+                    <div id="inputFilesList"></div>
+                    {% endif %}
                 </div>
 
                 <!-- Divider -->
-                <div class="hidden md:block w-px bg-gray-300"></div>
-                <div class="md:hidden h-px bg-gray-300 my-3"></div>
+                <div class="io-divider"></div>
 
-                <!-- Output Side -->
-                <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
-                    <h3 class="text-center text-lg md:text-xl font-semibold mb-4 md:mb-6">Output Files</h3>
+                <!-- ── Output Panel ── -->
+                <div class="io-panel">
+                    <div class="io-panel-title">
+                        <span class="io-panel-title-dot" style="background:var(--green);"></span>
+                        Output Files
+                    </div>
 
                     {% if output_files %}
-                    <div id="outputList" class="flex flex-col gap-2 md:gap-3">
+                    <div id="outputList">
                         {% for file in output_files %}
-                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-gray-100 px-3 md:px-4 py-2 md:py-3 rounded-md gap-2">
-                            <span class="text-xs md:text-sm break-all">📄 {{ file }}</span>
-                            <div class="flex gap-2 flex-shrink-0">
-                                <button onclick="previewFile('{{ prospect_name }}','output','{{ file }}')"
-                                    class="bg-[#0072bc] text-white px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm rounded-md hover:bg-[#005a94] whitespace-nowrap">
-                                    👁 Preview
-                                </button>
-                                <button onclick="downloadFile('{{ prospect_name }}','{{ file }}')"
-                                    class="bg-[#2e7d32] text-white px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm rounded-md hover:bg-[#1b5e20] whitespace-nowrap">
-                                    ⬇ Download
-                                </button>
+                        <div class="output-file-row">
+                            <span class="output-file-name">📄 {{ file }}</span>
+                            <div class="output-actions">
+                                <button class="btn-preview"
+                                    onclick="previewFile('{{ prospect_name }}','output','{{ file }}')">👁
+                                    Preview</button>
+                                <button class="btn-download"
+                                    onclick="downloadFile('{{ prospect_name }}','{{ file }}')">⬇ Download</button>
                             </div>
                         </div>
                         {% endfor %}
                     </div>
                     {% else %}
-                    <div id="outputList" class="text-center text-gray-500 py-8 md:py-12 text-sm md:text-base">
-                        No output files yet
+                    <div id="outputList">
+                        <div class="empty-output">
+                            <svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            No output files yet
+                        </div>
                     </div>
                     {% endif %}
                 </div>
 
             </div>
         </div>
-    </div>
-</div>
+    </main>
 
-<!-- Preview Modal -->
-<div id="previewModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-[999] flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col">
-        <div class="flex justify-between items-center px-4 md:px-6 py-3 md:py-4 border-b border-gray-200 bg-[#0072bc] rounded-t-xl">
-            <span id="previewTitle" class="text-white font-semibold text-sm md:text-base truncate flex-1 mr-4"></span>
-            <button onclick="closePreview()"
-                class="text-white bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1.5 rounded-md text-sm font-bold flex-shrink-0">
-                ✕ Close
-            </button>
+    <footer>
+        <span class="footer-copy">© Sherlock AI · NTT DATA Business Solutions</span>
+        <div class="footer-chips">
+            <span class="chip chip-blue">Azure GPT-4o</span>
+            <span class="chip chip-teal">FastAPI</span>
         </div>
-        <iframe id="previewIframe" class="flex-1 w-full rounded-b-xl border-0" src=""></iframe>
+    </footer>
+
+    <!-- Preview Modal -->
+    <div id="previewModal">
+        <div class="modal-inner">
+            <div class="modal-head">
+                <span id="previewTitle"></span>
+                <button class="modal-close" onclick="closePreview()">✕ Close</button>
+            </div>
+            <iframe id="previewIframe" src=""></iframe>
+        </div>
     </div>
-</div>
 
-<script>
-const prospectName = "{{ prospect_name }}";
-let selectedFiles = [];
-let uploadedFilesCount = {{ input_files|length if input_files else 0 }};
-let pollInterval = null;
+    <script>
+        /* ── All original JS logic preserved exactly ── */
+        const prospectName = "{{ prospect_name }}";
+        let selectedFiles = [];
+        let uploadedFilesCount = {{ input_files| length if input_files else 0 }};
+        let pollInterval = null;
 
-function handleDragOver(e) {
-    e.preventDefault();
-    e.currentTarget.classList.add('border-[#0072bc]', 'bg-blue-50');
-}
-function handleDragLeave(e) {
-    e.currentTarget.classList.remove('border-[#0072bc]', 'bg-blue-50');
-}
-function handleDrop(e) {
-    e.preventDefault();
-    e.currentTarget.classList.remove('border-[#0072bc]', 'bg-blue-50');
-    fileInput.files = e.dataTransfer.files;
-    handleFileSelect();
-}
-
-function handleFileSelect() {
-    const files = Array.from(fileInput.files);
-    selectedFiles = files;
-    if (!files.length) return;
-    if (!files.every(f => f.name.endsWith('.docx'))) {
-        alert('Only .docx files allowed');
-        fileInput.value = '';
-        selectedFiles = [];
-        return;
-    }
-    selectedFile.innerHTML = '';
-    files.forEach((f, idx) => {
-        const fileNumber = uploadedFilesCount + idx + 1;
-        selectedFile.innerHTML +=
-            `<div class="bg-blue-50 border-2 border-blue-200 px-3 md:px-4 py-2 md:py-3 rounded-md text-center break-all text-xs md:text-sm">
-             📄 ${fileNumber}. ${f.name}</div>`;
-    });
-    generateBtn.classList.remove("hidden");
-}
-
-// ── Step indicator helpers ──────────────────────────────────────────────────
-function resetSteps() {
-    document.getElementById('step1').innerHTML = '🟡 Step 1: Converting DOCX…';
-    document.getElementById('step2').innerHTML = '🟡 Step 2: AI Summarising…';
-    document.getElementById('step3').innerHTML = '🟡 Step 3: Generating Document…';
-    ['step1','step2','step3'].forEach(id => document.getElementById(id).className = 'text-gray-400');
-}
-
-function markStepActive(n) {
-    resetSteps();
-    for (let i = 1; i < n; i++) {
-        const el = document.getElementById(`step${i}`);
-        el.className = 'text-green-600 font-semibold';
-        el.innerHTML = el.innerHTML.replace('🟡','✅');
-    }
-    const el = document.getElementById(`step${n}`);
-    el.className = 'text-blue-600 font-semibold';
-    el.innerHTML = el.innerHTML.replace('🟡','⚙️');
-}
-
-function markAllDone() {
-    ['step1','step2','step3'].forEach(id => {
-        const el = document.getElementById(id);
-        el.className = 'text-green-600 font-semibold';
-        el.innerHTML = el.innerHTML.replace('🟡','✅').replace('⚙️','✅');
-    });
-}
-
-// ── Polling ─────────────────────────────────────────────────────────────────
-function startPolling(jobId) {
-    if (pollInterval) clearInterval(pollInterval);
-
-    pollInterval = setInterval(async () => {
-        try {
-            const res = await fetch(`/api/job-status/${jobId}`);
-            if (!res.ok) return;
-            const job = await res.json();
-
-            document.getElementById('statusMsg').textContent = job.message || '';
-
-            if ((job.status === 'running' || job.status === 'starting') && job.step >= 1) {
-                markStepActive(job.step);
-            }
-
-            if (job.status === 'done') {
-                clearInterval(pollInterval);
-                markAllDone();
-
-                setTimeout(() => {
-                    processingAnimation.classList.add("hidden");
-                    generateBtn.classList.remove("hidden");
-                    location.reload(); // reload to show new output file
-                }, 1200);
-            }
-
-            if (job.status === 'error') {
-                clearInterval(pollInterval);
-                alert('Generation failed: ' + job.message);
-                processingAnimation.classList.add("hidden");
-                generateBtn.classList.remove("hidden");
-            }
-
-        } catch(e) {
-            // network blip — keep polling
+        function handleDragOver(e) {
+            e.preventDefault();
+            document.getElementById('dropZone').classList.add('drag-over');
         }
-    }, 3000);
-}
-
-// ── Main generate flow ───────────────────────────────────────────────────────
-async function startGeneration() {
-    if (!selectedFiles.length) return alert("Select files first");
-
-    generateBtn.classList.add("hidden");
-    processingAnimation.classList.remove("hidden");
-    resetSteps();
-
-    try {
-        for (let i = 0; i < selectedFiles.length; i++) {
-            const fd = new FormData();
-            fd.append("file", selectedFiles[i]);
-            fd.append("prospect_name", prospectName);
-            await fetch("/upload", { method: "POST", body: fd });
+        function handleDragLeave(e) {
+            document.getElementById('dropZone').classList.remove('drag-over');
+        }
+        function handleDrop(e) {
+            e.preventDefault();
+            document.getElementById('dropZone').classList.remove('drag-over');
+            document.getElementById('fileInput').files = e.dataTransfer.files;
+            handleFileSelect();
         }
 
-        const r = await fetch("/generate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ prospect_name: prospectName })
-        });
-
-        if (!r.ok) throw new Error(await r.text());
-        const data = await r.json();
-        if (!data.job_id) throw new Error('No job ID returned');
-
-        // Poll for status — works even if user switches/closes tab
-        startPolling(data.job_id);
-
-    } catch(e) {
-        alert("Error: " + e.message);
-        processingAnimation.classList.add("hidden");
-        generateBtn.classList.remove("hidden");
-    }
-}
-
-function downloadFile(p, f) {
-    location.href = `/download/${p}/output/${f}`;
-}
-
-async function deleteInputFile(filename, rowId) {
-    if (!confirm(`Delete file "${filename}"?`)) return;
-    try {
-        const res = await fetch(`/delete-file/${prospectName}/input/${filename}`, { method: 'POST' });
-        const data = await res.json();
-        if (data.success) {
-            const row = document.getElementById(rowId);
-            if (row) row.remove();
-            // Re-number remaining files
-            const rows = document.querySelectorAll('#inputFilesList > div');
-            rows.forEach((r, idx) => {
-                const span = r.querySelector('span');
-                if (span) {
-                    span.textContent = span.textContent.replace(/^\📄 \d+\./, `📄 ${idx + 1}.`);
-                }
+        function handleFileSelect() {
+            const files = Array.from(document.getElementById('fileInput').files);
+            selectedFiles = files;
+            if (!files.length) return;
+            if (!files.every(f => f.name.endsWith('.docx'))) {
+                alert('Only .docx files allowed');
+                document.getElementById('fileInput').value = '';
+                selectedFiles = [];
+                return;
+            }
+            const container = document.getElementById('selectedFile');
+            container.innerHTML = '';
+            files.forEach((f, idx) => {
+                const fileNumber = uploadedFilesCount + idx + 1;
+                container.innerHTML +=
+                    `<div class="sel-file-row">
+         <span>📄</span>
+         <span class="sel-file-name">${fileNumber}. ${f.name}</span>
+       </div>`;
             });
-            uploadedFilesCount = Math.max(0, uploadedFilesCount - 1);
-        } else {
-            alert('Failed to delete file.');
+            const btn = document.getElementById('generateBtn');
+            btn.style.display = 'flex';
+            btn.classList.add('visible');
         }
-    } catch(e) {
-        alert('Error deleting file: ' + e.message);
-    }
-}
 
-function previewFile(prospect, folder, filename) {
-    const modal = document.getElementById('previewModal');
-    const iframe = document.getElementById('previewIframe');
-    const title = document.getElementById('previewTitle');
-    title.textContent = filename;
-    iframe.src = `/preview/${prospect}/${folder}/${filename}`;
-    modal.classList.remove('hidden');
-}
+        /* ── Step indicators ── */
+        function resetSteps() {
+            document.getElementById('step1').textContent = '🟡 Step 1: Converting DOCX…';
+            document.getElementById('step2').textContent = '🟡 Step 2: AI Summarising…';
+            document.getElementById('step3').textContent = '🟡 Step 3: Generating Document…';
+            ['step1', 'step2', 'step3'].forEach(id => document.getElementById(id).className = 'step-row');
+        }
+        function markStepActive(n) {
+            resetSteps();
+            for (let i = 1; i < n; i++) {
+                const el = document.getElementById(`step${i}`);
+                el.className = 'step-row done';
+                el.textContent = el.textContent.replace('🟡', '✅');
+            }
+            const el = document.getElementById(`step${n}`);
+            el.className = 'step-row active';
+            el.textContent = el.textContent.replace('🟡', '⚙️');
+        }
+        function markAllDone() {
+            ['step1', 'step2', 'step3'].forEach(id => {
+                const el = document.getElementById(id);
+                el.className = 'step-row done';
+                el.textContent = el.textContent.replace('🟡', '✅').replace('⚙️', '✅');
+            });
+        }
 
-function closePreview() {
-    const modal = document.getElementById('previewModal');
-    modal.classList.add('hidden');
-    document.getElementById('previewIframe').src = '';
-}
-</script>
+        /* ── Polling ── */
+        function startPolling(jobId) {
+            if (pollInterval) clearInterval(pollInterval);
+            pollInterval = setInterval(async () => {
+                try {
+                    const res = await fetch(`/api/job-status/${jobId}`);
+                    if (!res.ok) return;
+                    const job = await res.json();
 
+                    document.getElementById('statusMsg').textContent = job.message || '';
+
+                    if ((job.status === 'running' || job.status === 'starting') && job.step >= 1) {
+                        markStepActive(job.step);
+                    }
+
+                    if (job.status === 'done') {
+                        clearInterval(pollInterval);
+                        markAllDone();
+                        setTimeout(() => {
+                            document.getElementById('processingAnimation').style.display = 'none';
+                            const btn = document.getElementById('generateBtn');
+                            btn.style.display = 'flex';
+                            btn.classList.add('visible');
+                            location.reload();
+                        }, 1200);
+                    }
+
+                    if (job.status === 'error') {
+                        clearInterval(pollInterval);
+                        alert('Generation failed: ' + job.message);
+                        document.getElementById('processingAnimation').style.display = 'none';
+                        const btn = document.getElementById('generateBtn');
+                        btn.style.display = 'flex';
+                        btn.classList.add('visible');
+                    }
+                } catch (e) { /* network hiccup — keep polling */ }
+            }, 3000);
+        }
+
+        /* ── Main generate flow ── */
+        async function startGeneration() {
+            if (!selectedFiles.length) return alert("Select files first");
+
+            const genBtn = document.getElementById('generateBtn');
+            genBtn.style.display = 'none';
+            genBtn.classList.remove('visible');
+            document.getElementById('processingAnimation').style.display = 'block';
+            resetSteps();
+
+            try {
+                for (let i = 0; i < selectedFiles.length; i++) {
+                    const fd = new FormData();
+                    fd.append("file", selectedFiles[i]);
+                    fd.append("prospect_name", prospectName);
+                    await fetch("/upload", { method: "POST", body: fd });
+                }
+
+                const r = await fetch("/generate", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ prospect_name: prospectName })
+                });
+
+                if (!r.ok) throw new Error(await r.text());
+                const data = await r.json();
+                if (!data.job_id) throw new Error('No job ID returned');
+
+                startPolling(data.job_id);
+            } catch (e) {
+                alert("Error: " + e.message);
+                document.getElementById('processingAnimation').style.display = 'none';
+                const btn = document.getElementById('generateBtn');
+                btn.style.display = 'flex';
+                btn.classList.add('visible');
+            }
+        }
+
+        function downloadFile(p, f) {
+            location.href = `/download/${p}/output/${f}`;
+        }
+
+        async function deleteInputFile(filename, rowId) {
+            if (!confirm(`Delete file "${filename}"?`)) return;
+            try {
+                const res = await fetch(`/delete-file/${prospectName}/input/${filename}`, { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    const row = document.getElementById(rowId);
+                    if (row) row.remove();
+                    // Re-number remaining files
+                    const rows = document.querySelectorAll('#inputFilesList .input-file-row');
+                    rows.forEach((r, idx) => {
+                        const span = r.querySelector('.input-file-name');
+                        if (span) {
+                            span.textContent = span.textContent.replace(/📄 \d+\./, `📄 ${idx + 1}.`);
+                        }
+                    });
+                    uploadedFilesCount = Math.max(0, uploadedFilesCount - 1);
+                } else {
+                    alert('Failed to delete file.');
+                }
+            } catch (e) {
+                alert('Error deleting file: ' + e.message);
+            }
+        }
+
+        function previewFile(prospect, folder, filename) {
+            document.getElementById('previewTitle').textContent = filename;
+            document.getElementById('previewIframe').src = `/preview/${prospect}/${folder}/${filename}`;
+            document.getElementById('previewModal').classList.add('open');
+        }
+
+        function closePreview() {
+            document.getElementById('previewModal').classList.remove('open');
+            document.getElementById('previewIframe').src = '';
+        }
+    </script>
 </body>
+
 </html>

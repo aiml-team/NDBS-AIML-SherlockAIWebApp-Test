@@ -54,7 +54,8 @@ def ensure_container_exists():
 def get_all_prospects():
     try:
         container_client = get_container_client()
-        blobs = container_client.list_blobs()
+        blobs = list(container_client.list_blobs())
+        blobs.sort(key=lambda b: b.last_modified, reverse=True)
         prospects = {}
         for blob in blobs:
             parts = blob.name.split('/')
@@ -259,10 +260,12 @@ def api_prospect_files(prospect_name, folder):
 @app.route('/save-prospect', methods=['POST'])
 def save_prospect():
     data = request.json
-    prospect_name = secure_filename(data.get('prospect_name', '').strip())
+    raw = data.get('prospect_name', '').strip()
+    import re
+    prospect_name = re.sub(r'[^\w\s\-]', '', raw).strip()
     description = data.get('description', '').strip()
     if save_prospect_metadata(prospect_name, description):
-        return jsonify({'success': True})
+        return jsonify({'success': True, 'prospect_name': prospect_name})
     return jsonify({'success': False}), 500
 
 @app.route('/upload', methods=['POST'])
@@ -402,4 +405,4 @@ def download_file(prospect_name, folder, filename):
         return f"Error downloading file: {str(e)}", 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=5001)

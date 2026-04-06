@@ -1,381 +1,833 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Prospect | Sherlock AI</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Create Prospect | Sherlock AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #f5f7fa;
+      --bg2:       #ffffff;
+      --bg3:       #f0f3f8;
+      --border:    #e2e8f0;
+      --border2:   #cbd5e1;
+      --blue:      #2563eb;
+      --blue-lt:   #eff6ff;
+      --blue-mid:  #bfdbfe;
+      --blue-dark: #1d4ed8;
+      --teal:      #0891b2;
+      --teal-lt:   #ecfeff;
+      --green:     #059669;
+      --green-lt:  #ecfdf5;
+      --green-mid: #a7f3d0;
+      --amber:     #d97706;
+      --amber-lt:  #fffbeb;
+      --red:       #dc2626;
+      --red-lt:    #fef2f2;
+      --text:      #0f172a;
+      --text2:     #475569;
+      --text3:     #94a3b8;
+      --white:     #ffffff;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    html, body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 0 40px;
+      height: 62px;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: var(--shadow-sm);
+      position: sticky; top: 0; z-index: 200;
+    }
+    .header-left { display: flex; align-items: center; gap: 14px; }
+
+    .back-btn {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--blue-lt); color: var(--blue);
+      border: 1px solid var(--blue-mid);
+      padding: 7px 14px; border-radius: 8px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: all 0.12s; text-decoration: none;
+    }
+    .back-btn:hover { background: var(--blue); color: white; border-color: var(--blue); }
+
+    .logo { display: flex; align-items: center; gap: 11px; }
+    .logo-mark {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, var(--blue), var(--teal));
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(37,99,235,0.3);
+    }
+    .logo-mark svg { width: 17px; height: 17px; fill: white; }
+    .logo-text { display: flex; flex-direction: column; gap: 1px; }
+    .logo-name { font-size: 15px; font-weight: 800; color: var(--text); letter-spacing: -0.01em; }
+    .logo-sub  { font-size: 9.5px; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; font-family: 'JetBrains Mono', monospace; }
+
+    .header-right { display: flex; align-items: center; }
+    .header-logo-img { height: 32px; }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(135deg, #1e40af 0%, #0891b2 60%, #0d9488 100%);
+      padding: 30px 40px 28px; position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .hero-inner { max-width: 960px; margin: 0 auto; position: relative; }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+      color: rgba(255,255,255,0.9); font-size: 10.5px; font-weight: 600;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 5px 13px; border-radius: 20px; margin-bottom: 10px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .hero-title { font-size: 24px; font-weight: 800; color: #fff; line-height: 1.2; letter-spacing: -0.02em; margin-bottom: 5px; }
+    .hero-sub   { font-size: 13px; color: rgba(255,255,255,0.75); line-height: 1.6; }
+
+    /* ── Main ── */
+    main {
+      flex: 1;
+      max-width: 960px; margin: 0 auto; width: 100%;
+      padding: 14px 40px 10px;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    /* ── Notice banner ── */
+    .notice {
+      display: flex; align-items: flex-start; gap: 10px;
+      background: var(--amber-lt); border: 1px solid #fcd34d;
+      border-radius: 10px; padding: 10px 14px; margin-bottom: 12px;
+      font-size: 13px; color: #92400e;
+      flex-shrink: 0;
+    }
+    .notice-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+
+    /* ── Prospect input card ── */
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--shadow-sm);
+      overflow: visible;
+      margin-bottom: 12px;
+      flex-shrink: 0;
+    }
+    .card.io-card {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-height: 0;
+      margin-bottom: 0;
+    }
+    .card.io-card .card-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .card-head {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 11px;
+      background: var(--bg);
+      border-radius: 14px 14px 0 0;
+    }
+    .step-num {
+      width: 26px; height: 26px; border-radius: 8px;
+      background: var(--blue); color: white;
+      font-size: 11px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'JetBrains Mono', monospace; flex-shrink: 0;
+    }
+    .card-title { font-size: 11.5px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.1em; }
+    .card-body  { padding: 20px 22px; }
+
+    /* ── Prospect name row ── */
+    .prospect-input-row {
+      display: flex; gap: 10px; align-items: flex-start;
+    }
+    .input-wrap { flex: 1; position: relative; }
+    #prospectName {
+      width: 100%; padding: 11px 14px;
+      border: 1px solid var(--border); border-radius: 10px;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; color: var(--text);
+      outline: none; transition: border-color 0.15s, box-shadow 0.15s; background: var(--white);
+    }
+    #prospectName:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+    #prospectName::placeholder { color: var(--text3); }
+
+    #suggestions {
+      position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 10px; box-shadow: var(--shadow-md);
+      max-height: 240px; overflow-y: auto; z-index: 50;
+      display: none;
+    }
+    #suggestions.visible { display: block; }
+    .suggestion-item {
+      padding: 11px 14px; border-bottom: 1px solid var(--border);
+      cursor: pointer; font-size: 13px; transition: background 0.1s;
+    }
+    .suggestion-item:last-child { border-bottom: none; }
+    .suggestion-item:hover { background: var(--blue-lt); }
+    .suggestion-name { font-weight: 600; color: var(--text); }
+    .suggestion-desc { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+    .enter-btn {
+      background: linear-gradient(135deg, var(--green), #047857);
+      color: white; border: none; padding: 11px 22px;
+      border-radius: 10px; font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 13.5px; font-weight: 700; cursor: pointer;
+      box-shadow: 0 3px 10px rgba(5,150,105,0.3);
+      transition: all 0.15s; white-space: nowrap;
+    }
+    .enter-btn:hover { transform: translateY(-1px); box-shadow: 0 5px 14px rgba(5,150,105,0.4); }
+
+    /* ── IO Section (shown after prospect saved) ── */
+    #ioSection { display: none; flex: 1; flex-direction: column; min-height: 0; }
+    #ioSection.visible { display: flex; }
+
+    .io-grid {
+      display: grid; grid-template-columns: 1fr 1px 1fr;
+      grid-template-rows: 1fr;
+      flex: 1; min-height: 0; overflow: hidden;
+    }
+    .io-divider { background: var(--border); }
+
+    .io-panel {
+      padding: 16px 20px;
+      display: flex; flex-direction: column;
+      overflow-y: auto; overflow-x: hidden;
+      height: 100%;
+    }
+    .io-panel::-webkit-scrollbar { width: 5px; }
+    .io-panel::-webkit-scrollbar-track { background: transparent; }
+    .io-panel::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+    .io-panel-title {
+      font-size: 12px; font-weight: 700; color: var(--text2);
+      text-transform: uppercase; letter-spacing: 0.09em;
+      font-family: 'JetBrains Mono', monospace; margin-bottom: 14px;
+      display: flex; align-items: center; gap: 8px;
+      flex-shrink: 0;
+    }
+    .io-panel-title-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+
+    /* ── Drop zone ── */
+    .drop-zone {
+      border: 2px dashed var(--border2);
+      border-radius: 12px; padding: 20px 20px;
+      text-align: center; cursor: pointer;
+      transition: all 0.2s; background: var(--bg);
+      position: relative; margin-bottom: 12px;
+    }
+    .drop-zone:hover, .drop-zone.drag-over { border-color: var(--blue); background: var(--blue-lt); }
+    .drop-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .drop-icon-wrap {
+      width: 46px; height: 46px; border-radius: 12px;
+      background: var(--white); border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm); margin: 0 auto 12px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .drop-icon-wrap svg { width: 21px; height: 21px; fill: var(--blue); }
+    .drop-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .drop-hint  { font-size: 12px; color: var(--text2); margin-bottom: 12px; }
+    .fmt-row { display: flex; gap: 5px; justify-content: center; }
+    .fmt-tag {
+      font-family: 'JetBrains Mono', monospace; font-size: 9.5px; font-weight: 500;
+      padding: 3px 9px; border-radius: 5px;
+      border: 1px solid var(--border); color: var(--text2); background: var(--white);
+    }
+
+    /* ── Selected files list ── */
+    #selectedFiles {
+      display: flex; flex-direction: column; gap: 6px; margin-bottom: 4px;
+      flex-shrink: 0;
+    }
+    .sel-file-row {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--blue-lt); border: 1px solid var(--blue-mid);
+      padding: 8px 12px; border-radius: 8px; font-size: 12.5px;
+      animation: popIn 0.18s ease;
+    }
+    @keyframes popIn {
+      from { opacity: 0; transform: translateY(-3px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .sel-file-icon { color: var(--blue); font-size: 14px; flex-shrink: 0; }
+    .sel-file-name { flex: 1; color: var(--text); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* ── Generate button ── */
+    #generateBtn {
+      width: 100%; padding: 11px 20px;
+      background: linear-gradient(135deg, var(--green), #047857);
+      color: white; border: none; border-radius: 10px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 14px; font-weight: 700; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: all 0.15s; box-shadow: 0 3px 12px rgba(5,150,105,0.3);
+    }
+    #generateBtn:hover { transform: translateY(-1px); box-shadow: 0 5px 16px rgba(5,150,105,0.4); }
+    #generateBtn svg { width: 15px; height: 15px; fill: currentColor; }
+
+    /* ── Processing animation ── */
+    #processingAnimation {
+      display: none; margin-top: 12px;
+      background: var(--blue-lt); border: 1px solid var(--blue-mid);
+      border-radius: 12px; padding: 14px 16px;
+    }
+    .bounce-dots { display: flex; justify-content: center; gap: 8px; margin-bottom: 14px; }
+    .dot {
+      width: 9px; height: 9px; background: var(--blue);
+      border-radius: 50%; animation: bounce 1.2s infinite;
+    }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce {
+      0%,80%,100% { transform: translateY(0); }
+      40% { transform: translateY(-8px); }
+    }
+    .step-list { display: flex; flex-direction: column; gap: 7px; }
+    .step-row {
+      display: flex; align-items: center; gap: 9px;
+      font-size: 12.5px; color: var(--text3); transition: color 0.2s;
+    }
+    .step-row.active { color: var(--blue); font-weight: 600; }
+    .step-row.done   { color: var(--green); font-weight: 600; }
+    #statusMsg { font-size: 11px; color: var(--text3); text-align: center; margin-top: 10px; font-family: 'JetBrains Mono', monospace; }
+    .server-note { font-size: 11px; color: var(--blue); text-align: center; margin-top: 6px; }
+
+    /* ── Output panel ── */
+    #outputMessage {
+      color: var(--text3); text-align: center; padding: 20px 0;
+      font-size: 13px; flex-shrink: 0;
+    }
+    #outputFilesList {
+      display: none;
+      overflow-y: auto; flex: 1; min-height: 0;
+    }
+    #outputFilesList::-webkit-scrollbar { width: 5px; }
+    #outputFilesList::-webkit-scrollbar-track { background: transparent; }
+    #outputFilesList::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+    .output-file-card {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 10px 14px; margin-bottom: 8px;
+      font-size: 12px; color: var(--text2); font-family: 'JetBrains Mono', monospace;
+      word-break: break-all;
+    }
+
+    .output-actions {
+      display: flex; gap: 10px; margin-top: 12px;
+    }
+    #previewBtn {
+      flex: 1; display: none;
+      align-items: center; justify-content: center; gap: 6px;
+      background: var(--blue-lt); color: var(--blue);
+      border: 1px solid var(--blue-mid);
+      padding: 10px 16px; border-radius: 9px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: all 0.12s;
+    }
+    #previewBtn:hover { background: var(--blue); color: white; border-color: var(--blue); }
+    #previewBtn.visible { display: flex; }
+
+    #downloadBtn {
+      flex: 1; display: none;
+      align-items: center; justify-content: center; gap: 6px;
+      background: var(--green); color: white; border: none;
+      padding: 10px 16px; border-radius: 9px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 13px; font-weight: 700; cursor: pointer;
+      box-shadow: 0 2px 8px rgba(5,150,105,0.3);
+      transition: all 0.12s;
+    }
+    #downloadBtn:hover { opacity: 0.9; transform: translateY(-1px); }
+    #downloadBtn.visible { display: flex; }
+
+    /* ── Preview Modal ── */
+    #previewModal {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6); z-index: 999;
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    #previewModal.open { display: flex; }
+    .modal-inner {
+      background: var(--white); border-radius: 14px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+      width: 100%; max-width: 900px; height: 90vh;
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .modal-head {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 20px;
+      background: linear-gradient(90deg, #1e40af, #0891b2);
+      border-radius: 14px 14px 0 0;
+    }
+    #previewTitle { color: white; font-weight: 600; font-size: 13.5px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 14px; }
+    .modal-close {
+      background: rgba(255,255,255,0.2); border: none; color: white;
+      padding: 6px 12px; border-radius: 7px; cursor: pointer;
+      font-size: 13px; font-weight: 700; transition: background 0.15s;
+    }
+    .modal-close:hover { background: rgba(255,255,255,0.3); }
+    #previewIframe { flex: 1; width: 100%; border: none; }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--white); border-top: 1px solid var(--border);
+      padding: 10px 40px; display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .footer-copy { font-size: 11px; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+    .chip { font-size: 10.5px; font-weight: 600; padding: 4px 10px; border-radius: 20px; border: 1px solid; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em; }
+    .chip-blue { color: var(--blue); border-color: var(--blue-mid); background: var(--blue-lt); }
+    .chip-teal { color: var(--teal); border-color: #a5f3fc; background: var(--teal-lt); }
+    .footer-chips { display: flex; gap: 6px; }
+
+    @media (max-width: 640px) {
+      header { padding: 0 16px; }
+      .hero  { padding: 22px 16px 20px; }
+      main   { padding: 18px 16px 48px; }
+      .io-grid { grid-template-columns: 1fr; }
+      .io-divider { display: none; }
+      footer { padding: 14px 16px; flex-direction: column; gap: 8px; }
+    }
+  </style>
 </head>
-<body class="bg-gray-100 h-screen overflow-hidden">
+<body>
 
-<div class="h-screen flex flex-col">
-    <!-- Header -->
-    <div class="bg-white border-b border-gray-300 px-4 md:px-12 py-3 md:py-5 flex justify-between items-center">
-        <button onclick="window.location.href='/'"
-            class="bg-[#0072bc] text-white h-9 md:h-10 px-3 md:px-5 rounded-md text-sm md:text-base hover:bg-[#005a94]">
-            ← Back
-        </button>
-        <span class="absolute left-1/2 -translate-x-1/2 text-xl md:text-3xl font-semibold text-[#0072bc]">
-            Sherlock AI
-        </span>
-        <img src="{{ url_for('static', filename='Logo-Blue.png') }}" class="h-7 md:h-9" alt="Logo">
+<!-- Header -->
+<header>
+  <div class="header-left">
+    <a href="/" class="back-btn">← Back</a>
+    <div class="logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 18 18">
+          <rect x="1" y="1" width="7" height="7" rx="1.5"/>
+          <rect x="10" y="1" width="7" height="7" rx="1.5" opacity="0.7"/>
+          <rect x="1" y="10" width="7" height="7" rx="1.5" opacity="0.7"/>
+          <rect x="10" y="10" width="7" height="7" rx="1.5" opacity="0.4"/>
+        </svg>
+      </div>
+      <div class="logo-text">
+        <div class="logo-name">Sherlock AI</div>
+        <div class="logo-sub">Document Pipeline</div>
+      </div>
     </div>
+  </div>
+  <div class="header-right">
+    <img src="{{ url_for('static', filename='Logo-Blue.png') }}" class="header-logo-img" alt="NTT Data Logo">
+  </div>
+</header>
 
-    <!-- Content -->
-    <div class="flex-1 p-3 md:p-6 flex justify-center overflow-hidden">
-        <div class="w-full max-w-7xl bg-gray-200 border-2 border-gray-300 rounded-2xl p-4 md:p-10 flex flex-col">
-
-            <!-- Note -->
-            <div class="bg-yellow-100 border border-yellow-300 text-yellow-800 px-3 md:px-4 py-3 md:py-4 rounded-lg mb-4 md:mb-6 text-xs md:text-sm">
-                ⚠️ <strong>NOTE:</strong> Pilot testing version. Validate AI content.
-            </div>
-
-            <!-- Prospect Input -->
-            <div class="flex flex-col md:flex-row justify-center gap-3 md:gap-4 mb-4 md:mb-6">
-                <div class="w-full md:w-3/5 relative">
-                    <input id="prospectName" type="text" placeholder="Enter Prospect Name"
-                        oninput="filterSuggestions()" onfocus="filterSuggestions()"
-                        onkeydown="if(event.key==='Enter'){event.preventDefault();saveProspect();}"
-                        class="w-full p-2.5 md:p-3 text-sm md:text-lg rounded-lg border border-gray-300">
-                    <div id="suggestions"
-                        class="hidden absolute top-full left-0 right-0 bg-white border rounded shadow max-h-[300px] overflow-y-auto z-50"></div>
-                </div>
-                <button onclick="saveProspect()"
-                    class="bg-[#2e7d32] text-white px-5 md:px-8 py-2.5 md:py-3 text-sm md:text-lg rounded-lg hover:bg-[#1b5e20]">
-                    Enter
-                </button>
-            </div>
-
-            <!-- IO Section -->
-            <div id="ioSection"
-                class="hidden bg-white rounded-xl shadow-lg flex flex-col md:flex-row gap-6 md:gap-8 flex-1 overflow-hidden p-4 md:p-8">
-
-                <!-- Input Side -->
-                <div class="flex-1 flex flex-col items-center min-w-0">
-                    <h3 class="text-lg md:text-xl font-semibold mb-4 md:mb-6">Input Files</h3>
-
-                    <label for="fileInput"
-                        class="w-full max-w-md border-2 border-dashed border-gray-300 p-6 md:p-8 text-center rounded-lg cursor-pointer hover:border-[#0072bc] hover:text-[#0072bc] transition text-sm md:text-base"
-                        ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
-                        Upload DOCX (Multiple files allowed)<br>
-                        <span class="text-xs md:text-sm text-gray-500">Click or Drag & Drop</span>
-                        <input id="fileInput" type="file" hidden accept=".docx" multiple onchange="handleFileSelect()">
-                    </label>
-
-                    <div id="selectedFiles" class="mt-3 w-full max-w-md"></div>
-
-                    <button id="generateBtn" onclick="startGeneration()"
-                        class="mt-4 md:mt-6 bg-[#2e7d32] text-white px-5 md:px-8 py-2.5 md:py-3 text-sm md:text-lg rounded-lg hover:bg-[#1b5e20]">
-                        Generate
-                    </button>
-
-                    <!-- Processing Animation -->
-                    <div id="processingAnimation"
-                        class="hidden mt-4 md:mt-6 p-3 md:p-4 bg-blue-50 border-2 border-blue-200 rounded-lg w-full max-w-md">
-                        <div class="flex justify-center gap-2 mb-3">
-                            <div class="w-2 h-2 md:w-3 md:h-3 bg-blue-500 rounded-full animate-bounce"></div>
-                            <div class="w-2 h-2 md:w-3 md:h-3 bg-blue-500 rounded-full animate-bounce" style="animation-delay:.2s"></div>
-                            <div class="w-2 h-2 md:w-3 md:h-3 bg-blue-500 rounded-full animate-bounce" style="animation-delay:.4s"></div>
-                        </div>
-                        <div class="text-center text-xs md:text-sm space-y-1">
-                            <div id="step1" class="text-gray-400">🟡 Step 1: Converting DOCX…</div>
-                            <div id="step2" class="text-gray-400">🟡 Step 2: AI Summarising…</div>
-                            <div id="step3" class="text-gray-400">🟡 Step 3: Generating Document…</div>
-                        </div>
-                        <p id="statusMsg" class="text-center text-xs text-gray-500 mt-2"></p>
-                        <p class="text-center text-xs text-blue-600 mt-1">
-                            ✅ You can safely close this tab — processing continues on the server.
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Output Side -->
-                <div class="flex-1 flex flex-col items-center justify-center min-w-0">
-                    <h3 class="text-lg md:text-xl font-semibold mb-4 md:mb-6">Output Files</h3>
-
-                    <div id="outputMessage" class="text-gray-500 py-8 md:py-10 text-xs md:text-sm">
-                        Generate to see output
-                    </div>
-
-                    <div id="outputFilesList" class="hidden w-full max-w-md mb-4 md:mb-6"></div>
-
-                    <div class="flex gap-3">
-                        <button id="previewBtn" onclick="previewLatest()"
-                            class="hidden bg-[#0072bc] text-white px-5 md:px-8 py-2.5 md:py-3 text-sm md:text-lg rounded-lg hover:bg-[#005a94]">
-                            👁 Preview
-                        </button>
-                        <button id="downloadBtn" onclick="downloadLatest()"
-                            class="hidden bg-[#2e7d32] text-white px-5 md:px-8 py-2.5 md:py-3 text-sm md:text-lg rounded-lg hover:bg-[#1b5e20]">
-                            ⬇ Download
-                        </button>
-                    </div>
-                </div>
-
-            </div>
-        </div>
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">
+      <svg width="7" height="7" viewBox="0 0 8 8" fill="currentColor"><circle cx="4" cy="4" r="4"/></svg>
+      New Prospect
     </div>
+    <h1 class="hero-title">Create Prospect</h1>
+    <p class="hero-sub">Name your prospect, upload DOCX transcripts, and generate an AI-powered customer profile document.</p>
+  </div>
 </div>
 
-<!-- Preview Modal -->
-<div id="previewModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-[999] flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col">
-        <div class="flex justify-between items-center px-4 md:px-6 py-3 md:py-4 border-b border-gray-200 bg-[#0072bc] rounded-t-xl">
-            <span id="previewTitle" class="text-white font-semibold text-sm md:text-base truncate flex-1 mr-4"></span>
-            <button onclick="closePreview()"
-                class="text-white bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1.5 rounded-md text-sm font-bold flex-shrink-0">
-                ✕ Close
-            </button>
-        </div>
-        <iframe id="previewIframe" class="flex-1 w-full rounded-b-xl border-0" src=""></iframe>
+<!-- Main -->
+<main>
+
+  <!-- Notice -->
+  <div class="notice">
+    <span class="notice-icon">⚠️</span>
+    <span><strong>NOTE:</strong> Pilot testing version. Always validate AI-generated content before sharing externally.</span>
+  </div>
+
+  <!-- Step 1: Prospect Name -->
+  <div class="card" id="step1Card">
+    <div class="card-head">
+      <div class="step-num">1</div>
+      <span class="card-title">Name Your Prospect</span>
     </div>
+    <div class="card-body">
+      <div class="prospect-input-row">
+        <div class="input-wrap">
+          <input id="prospectName" type="text" placeholder="Enter prospect name…"
+            oninput="filterSuggestions()" onfocus="filterSuggestions()"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();saveProspect();}">
+          <div id="suggestions"></div>
+        </div>
+        <button class="enter-btn" onclick="saveProspect()">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2 + 3: IO section (hidden until prospect saved) -->
+  <div id="ioSection">
+    <div class="card io-card">
+      <div class="card-head">
+        <div class="step-num">2</div>
+        <span class="card-title">Upload &amp; Generate</span>
+      </div>
+      <div class="card-body" style="padding:0;">
+        <div class="io-grid">
+
+          <!-- Input Panel -->
+          <div class="io-panel">
+            <div class="io-panel-title">
+              <span class="io-panel-title-dot" style="background:var(--blue);"></span>
+              Input Files
+            </div>
+
+            <div class="drop-zone" id="dropZone"
+              ondrop="handleDrop(event)"
+              ondragover="handleDragOver(event)"
+              ondragleave="handleDragLeave(event)">
+              <input type="file" id="fileInput" accept=".docx" multiple onchange="handleFileSelect()">
+              <div class="drop-icon-wrap">
+                <svg viewBox="0 0 24 24"><path d="M12 3L8 8h3v8h2V8h3L12 3zM5 18v2h14v-2H5z"/></svg>
+              </div>
+              <div class="drop-title">Drop DOCX files or click to browse</div>
+              <div class="drop-hint">Multiple files allowed</div>
+              <div class="fmt-row"><span class="fmt-tag">DOCX</span></div>
+            </div>
+
+            <div id="selectedFiles"></div>
+
+            <button id="generateBtn" onclick="startGeneration()">
+              <svg viewBox="0 0 20 20"><path d="M4 4l12 6-12 6V4z"/></svg>
+              Generate Document
+            </button>
+
+            <div id="processingAnimation">
+              <div class="bounce-dots">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+              </div>
+              <div class="step-list">
+                <div class="step-row" id="step1">🟡 Step 1: Converting DOCX…</div>
+                <div class="step-row" id="step2">🟡 Step 2: AI Summarising…</div>
+                <div class="step-row" id="step3">🟡 Step 3: Generating Document…</div>
+              </div>
+              <p id="statusMsg"></p>
+              <p class="server-note">✅ You can safely close this tab — processing continues on the server.</p>
+            </div>
+          </div>
+
+          <!-- Divider -->
+          <div class="io-divider"></div>
+
+          <!-- Output Panel -->
+          <div class="io-panel">
+            <div class="io-panel-title">
+              <span class="io-panel-title-dot" style="background:var(--green);"></span>
+              Output Files
+            </div>
+
+            <div id="outputMessage">
+              <svg viewBox="0 0 24 24" style="width:36px;height:36px;stroke:var(--border2);fill:none;stroke-width:1.5;margin:0 auto 10px;display:block;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              Generate to see output
+            </div>
+
+            <div id="outputFilesList"></div>
+
+            <div class="output-actions">
+              <button id="previewBtn" onclick="previewLatest()">👁 Preview</button>
+              <button id="downloadBtn" onclick="downloadLatest()">⬇ Download</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <span class="footer-copy">© Sherlock AI · NTT DATA Business Solutions</span>
+  <div class="footer-chips">
+    <span class="chip chip-blue">Azure GPT-4o</span>
+    <span class="chip chip-teal">FastAPI</span>
+  </div>
+</footer>
+
+<!-- Preview Modal -->
+<div id="previewModal">
+  <div class="modal-inner">
+    <div class="modal-head">
+      <span id="previewTitle"></span>
+      <button class="modal-close" onclick="closePreview()">✕ Close</button>
+    </div>
+    <iframe id="previewIframe" src=""></iframe>
+  </div>
 </div>
 
 <script>
+/* ── All original JS logic preserved exactly ── */
 let existingProspects = [];
 let latestOutputFile = '';
 let currentProspectName = '';
 let uploadedFilesCount = 0;
 let pollInterval = null;
-let prospectSaved = false;  // guard against double-save
+let prospectSaved = false;
 
 async function loadProspects() {
-    const res = await fetch("/api/prospects");
-    existingProspects = await res.json();
+  const res = await fetch("/api/prospects");
+  existingProspects = await res.json();
 }
 loadProspects();
 
 function filterSuggestions() {
-    const v = document.getElementById('prospectName').value.toLowerCase();
-    if (!v) return suggestions.classList.add("hidden");
-    const matches = existingProspects.filter(p => p.prospect_name.toLowerCase().includes(v));
-    if (!matches.length) return suggestions.classList.add("hidden");
-    suggestions.innerHTML = matches.map(p => `
-        <div class="px-3 md:px-4 py-2 md:py-3 border-b cursor-pointer hover:bg-gray-50 text-xs md:text-sm"
-             onclick="selectSuggestion('${p.prospect_name}','${p.description||""}')">
-            <strong>${p.prospect_name}</strong>
-            <div class="text-xs text-gray-600">${p.description||""}</div>
-        </div>`).join("");
-    suggestions.classList.remove("hidden");
+  const v = document.getElementById('prospectName').value.toLowerCase();
+  const suggestions = document.getElementById('suggestions');
+  if (!v) { suggestions.classList.remove('visible'); return; }
+  const matches = existingProspects.filter(p => p.prospect_name.toLowerCase().includes(v));
+  if (!matches.length) { suggestions.classList.remove('visible'); return; }
+  suggestions.innerHTML = matches.map(p => `
+    <div class="suggestion-item" onclick="selectSuggestion('${p.prospect_name}','${p.description||""}')">
+      <div class="suggestion-name">${p.prospect_name}</div>
+      <div class="suggestion-desc">${p.description||""}</div>
+    </div>`).join("");
+  suggestions.classList.add('visible');
 }
 
 function selectSuggestion(n, d) {
-    document.getElementById('prospectName').value = n;
-    suggestions.classList.add("hidden");
-    alert(`⚠️ "${n}" already exists.`);
+  document.getElementById('prospectName').value = n;
+  document.getElementById('suggestions').classList.remove('visible');
+  alert(`⚠️ "${n}" already exists.`);
 }
 
 async function saveProspect() {
-    if (prospectSaved) return;  // prevent double-call
-    const nameInput = document.getElementById('prospectName');
-    if (!nameInput.value.trim()) return alert("Enter name");
-    currentProspectName = nameInput.value.trim();
+  if (prospectSaved) return;
+  const nameInput = document.getElementById('prospectName');
+  if (!nameInput.value.trim()) return alert("Enter name");
+  currentProspectName = nameInput.value.trim();
 
-    // Check if already exists
-    const exists = existingProspects.find(p => p.prospect_name.toLowerCase() === currentProspectName.toLowerCase());
-    if (exists) {
-        alert(`⚠️ Prospect "${currentProspectName}" already exists. Please use a different name or go back to view it.`);
-        return;
-    }
+  const exists = existingProspects.find(p => p.prospect_name.toLowerCase() === currentProspectName.toLowerCase());
+  if (exists) {
+    alert(`⚠️ Prospect "${currentProspectName}" already exists. Please use a different name or go back to view it.`);
+    return;
+  }
 
-    prospectSaved = true;
+  prospectSaved = true;
 
-    await fetch("/save-prospect", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prospect_name: currentProspectName })
-    });
+  const saveRes = await fetch("/save-prospect", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prospect_name: currentProspectName })
+  });
+  const saveData = await saveRes.json();
+  if (saveData.prospect_name) currentProspectName = saveData.prospect_name;
 
-    try {
-        const res = await fetch(`/api/prospect-files/${currentProspectName}/input`);
-        const existingFiles = await res.json();
-        uploadedFilesCount = existingFiles.filter(f => f.endsWith('.docx')).length;
-    } catch(e) {
-        uploadedFilesCount = 0;
-    }
-
-    ioSection.classList.remove("hidden");
-    nameInput.disabled = true;
+  nameInput.value = currentProspectName;
+  nameInput.disabled = true;
+  document.getElementById('step1Card').style.display = 'none';
+  document.getElementById('ioSection').classList.add('visible');
 }
 
 function handleDragOver(e) {
-    e.preventDefault();
-    e.currentTarget.classList.add('border-[#0072bc]', 'bg-blue-50');
+  e.preventDefault();
+  document.getElementById('dropZone').classList.add('drag-over');
 }
 function handleDragLeave(e) {
-    e.currentTarget.classList.remove('border-[#0072bc]', 'bg-blue-50');
+  document.getElementById('dropZone').classList.remove('drag-over');
 }
 function handleDrop(e) {
-    e.preventDefault();
-    e.currentTarget.classList.remove('border-[#0072bc]', 'bg-blue-50');
-    fileInput.files = e.dataTransfer.files;
-    handleFileSelect();
+  e.preventDefault();
+  document.getElementById('dropZone').classList.remove('drag-over');
+  document.getElementById('fileInput').files = e.dataTransfer.files;
+  handleFileSelect();
 }
 
 function handleFileSelect() {
-    selectedFiles.innerHTML = "";
-    [...fileInput.files].forEach((f, idx) => {
-        const fileNumber = uploadedFilesCount + idx + 1;
-        selectedFiles.innerHTML +=
-            `<div class="bg-blue-50 border border-blue-200 px-3 py-2 mt-2 rounded text-xs md:text-sm break-all">📄 ${fileNumber}. ${f.name}</div>`;
-    });
+  const selectedFiles = document.getElementById('selectedFiles');
+  selectedFiles.innerHTML = "";
+  [...document.getElementById('fileInput').files].forEach((f, idx) => {
+    const fileNumber = uploadedFilesCount + idx + 1;
+    selectedFiles.innerHTML +=
+      `<div class="sel-file-row">
+         <span class="sel-file-icon">📄</span>
+         <span class="sel-file-name">${fileNumber}. ${f.name}</span>
+       </div>`;
+  });
 }
 
-// ── Step indicator helpers ────────────────────────────────────────────────────
+/* ── Step indicators ── */
 function resetSteps() {
-    ['step1','step2','step3'].forEach(id => {
-        const el = document.getElementById(id);
-        el.className = 'text-gray-400';
-    });
+  ['step1','step2','step3'].forEach(id => {
+    const el = document.getElementById(id);
+    el.className = 'step-row';
+    if (id === 'step1') el.textContent = '🟡 Step 1: Converting DOCX…';
+    if (id === 'step2') el.textContent = '🟡 Step 2: AI Summarising…';
+    if (id === 'step3') el.textContent = '🟡 Step 3: Generating Document…';
+  });
 }
-
 function markStepActive(n) {
-    resetSteps();
-    for (let i = 1; i < n; i++) {
-        const el = document.getElementById(`step${i}`);
-        el.className = 'text-green-600 font-semibold';
-        el.innerHTML = el.innerHTML.replace('🟡','✅');
-    }
-    const el = document.getElementById(`step${n}`);
-    el.className = 'text-blue-600 font-semibold';
-    el.innerHTML = el.innerHTML.replace('🟡','⚙️');
+  resetSteps();
+  for (let i = 1; i < n; i++) {
+    const el = document.getElementById(`step${i}`);
+    el.className = 'step-row done';
+    el.textContent = el.textContent.replace('🟡','✅');
+  }
+  const el = document.getElementById(`step${n}`);
+  el.className = 'step-row active';
+  el.textContent = el.textContent.replace('🟡','⚙️');
 }
-
 function markAllDone() {
-    ['step1','step2','step3'].forEach(id => {
-        const el = document.getElementById(id);
-        el.className = 'text-green-600 font-semibold';
-        el.innerHTML = el.innerHTML.replace('🟡','✅').replace('⚙️','✅');
-    });
+  ['step1','step2','step3'].forEach(id => {
+    const el = document.getElementById(id);
+    el.className = 'step-row done';
+    el.textContent = el.textContent.replace('🟡','✅').replace('⚙️','✅');
+  });
 }
 
-// ── Polling ───────────────────────────────────────────────────────────────────
+/* ── Polling ── */
 function startPolling(jobId, totalFilesAfterUpload) {
-    if (pollInterval) clearInterval(pollInterval);
+  if (pollInterval) clearInterval(pollInterval);
+  pollInterval = setInterval(async () => {
+    try {
+      const res = await fetch(`/api/job-status/${jobId}`);
+      if (!res.ok) return;
+      const job = await res.json();
 
-    pollInterval = setInterval(async () => {
-        try {
-            const res = await fetch(`/api/job-status/${jobId}`);
-            if (!res.ok) return;
-            const job = await res.json();
+      document.getElementById('statusMsg').textContent = job.message || '';
 
-            document.getElementById('statusMsg').textContent = job.message || '';
+      if (job.status === 'running' || job.status === 'starting') {
+        if (job.step >= 1) markStepActive(job.step);
+      }
 
-            if (job.status === 'running' || job.status === 'starting') {
-                if (job.step >= 1) markStepActive(job.step);
-            }
+      if (job.status === 'done') {
+        clearInterval(pollInterval);
+        markAllDone();
+        latestOutputFile = job.output_file || '';
 
-            if (job.status === 'done') {
-                clearInterval(pollInterval);
-                markAllDone();
-                latestOutputFile = job.output_file || '';
+        const fileRange = totalFilesAfterUpload === 1
+          ? `File 1`
+          : `Files 1-${totalFilesAfterUpload}`;
 
-                const fileRange = totalFilesAfterUpload === 1
-                    ? `File 1`
-                    : `Files 1-${totalFilesAfterUpload}`;
+        setTimeout(() => {
+          document.getElementById('processingAnimation').style.display = 'none';
+          document.getElementById('outputMessage').style.display = 'none';
+          document.getElementById('outputFilesList').style.display = 'block';
+          document.getElementById('downloadBtn').classList.add('visible');
+          document.getElementById('previewBtn').classList.add('visible');
+          document.getElementById('generateBtn').style.display = 'flex';
 
-                setTimeout(() => {
-                    processingAnimation.classList.add("hidden");
-                    outputMessage.classList.add("hidden");
-                    outputFilesList.classList.remove("hidden");
-                    downloadBtn.classList.remove("hidden");
-                    previewBtn.classList.remove("hidden");
-                    generateBtn.classList.remove("hidden");
+          uploadedFilesCount = totalFilesAfterUpload;
 
-                    uploadedFilesCount = totalFilesAfterUpload;
+          document.getElementById('outputFilesList').innerHTML = latestOutputFile
+            ? `<div class="output-file-card">📄 ${fileRange}: ${latestOutputFile}</div>`
+            : `<div style="color:var(--red);font-size:13px;">No output file found</div>`;
 
-                    outputFilesList.innerHTML = latestOutputFile
-                        ? `<div class="bg-gray-100 px-3 md:px-4 py-3 rounded break-all text-center text-xs md:text-sm">
-                               📄 ${fileRange}: ${latestOutputFile}
-                           </div>`
-                        : `<div class="text-red-500 text-center text-xs md:text-sm">No output file found</div>`;
+          document.getElementById('fileInput').value = '';
+          document.getElementById('selectedFiles').innerHTML = '';
+        }, 800);
+      }
 
-                    fileInput.value = '';
-                    selectedFiles.innerHTML = '';
-                }, 800);
-            }
-
-            if (job.status === 'error') {
-                clearInterval(pollInterval);
-                alert('Generation failed: ' + job.message);
-                processingAnimation.classList.add("hidden");
-                generateBtn.classList.remove("hidden");
-            }
-
-        } catch(e) {
-            // network hiccup — keep polling
-        }
-    }, 3000); // poll every 3 seconds
+      if (job.status === 'error') {
+        clearInterval(pollInterval);
+        alert('Generation failed: ' + job.message);
+        document.getElementById('processingAnimation').style.display = 'none';
+        document.getElementById('generateBtn').style.display = 'flex';
+      }
+    } catch(e) { /* network hiccup — keep polling */ }
+  }, 3000);
 }
 
-// ── Main generate flow ────────────────────────────────────────────────────────
+/* ── Main generate ── */
 async function startGeneration() {
-    if (!fileInput.files.length) return alert("Upload files first");
+  const fileInput = document.getElementById('fileInput');
+  if (!fileInput.files.length) return alert("Upload files first");
 
-    generateBtn.classList.add("hidden");
-    processingAnimation.classList.remove("hidden");
-    resetSteps();
+  document.getElementById('generateBtn').style.display = 'none';
+  document.getElementById('processingAnimation').style.display = 'block';
+  resetSteps();
 
-    const totalFilesAfterUpload = uploadedFilesCount + fileInput.files.length;
+  const totalFilesAfterUpload = uploadedFilesCount + fileInput.files.length;
 
-    try {
-        // Upload files
-        for (let i = 0; i < fileInput.files.length; i++) {
-            const fd = new FormData();
-            fd.append("file", fileInput.files[i]);
-            fd.append("prospect_name", currentProspectName);
-            await fetch("/upload", { method: "POST", body: fd });
-        }
-
-        // Start background job — returns immediately with job_id
-        const r = await fetch("/generate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ prospect_name: currentProspectName })
-        });
-
-        if (!r.ok) throw new Error(await r.text());
-        const data = await r.json();
-
-        if (!data.job_id) throw new Error('No job ID returned');
-
-        // Begin polling — works even if user switches tabs or minimises browser
-        startPolling(data.job_id, totalFilesAfterUpload);
-
-    } catch(err) {
-        alert("Generation failed: " + err.message);
-        processingAnimation.classList.add("hidden");
-        generateBtn.classList.remove("hidden");
+  try {
+    for (let i = 0; i < fileInput.files.length; i++) {
+      const fd = new FormData();
+      fd.append("file", fileInput.files[i]);
+      fd.append("prospect_name", currentProspectName);
+      await fetch("/upload", { method: "POST", body: fd });
     }
+
+    const r = await fetch("/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prospect_name: currentProspectName })
+    });
+
+    if (!r.ok) throw new Error(await r.text());
+    const data = await r.json();
+    if (!data.job_id) throw new Error('No job ID returned');
+
+    startPolling(data.job_id, totalFilesAfterUpload);
+  } catch(err) {
+    alert("Generation failed: " + err.message);
+    document.getElementById('processingAnimation').style.display = 'none';
+    document.getElementById('generateBtn').style.display = 'flex';
+  }
 }
 
 function downloadLatest() {
-    if (latestOutputFile)
-        location.href = `/download/${currentProspectName}/output/${latestOutputFile}`;
+  if (latestOutputFile)
+    location.href = `/download/${currentProspectName}/output/${latestOutputFile}`;
 }
 
 function previewLatest() {
-    if (latestOutputFile) previewFile(currentProspectName, 'output', latestOutputFile);
+  if (latestOutputFile) previewFile(currentProspectName, 'output', latestOutputFile);
 }
 
 function previewFile(prospect, folder, filename) {
-    const modal = document.getElementById('previewModal');
-    const iframe = document.getElementById('previewIframe');
-    const title = document.getElementById('previewTitle');
-    title.textContent = filename;
-    iframe.src = `/preview/${prospect}/${folder}/${filename}`;
-    modal.classList.remove('hidden');
+  document.getElementById('previewTitle').textContent = filename;
+  document.getElementById('previewIframe').src = `/preview/${prospect}/${folder}/${filename}`;
+  document.getElementById('previewModal').classList.add('open');
 }
 
 function closePreview() {
-    document.getElementById('previewModal').classList.add('hidden');
-    document.getElementById('previewIframe').src = '';
+  document.getElementById('previewModal').classList.remove('open');
+  document.getElementById('previewIframe').src = '';
 }
 
 document.addEventListener("click", e => {
-    if (!e.target.closest(".relative"))
-        suggestions.classList.add("hidden");
+  if (!e.target.closest(".input-wrap"))
+    document.getElementById('suggestions').classList.remove('visible');
 });
 </script>
-
 </body>
 </html>
