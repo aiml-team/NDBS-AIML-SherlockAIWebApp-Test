@@ -130,8 +130,8 @@ def download_from_azure(blob_path):
 def process_pipeline(prospect_name, filename, file_data, job_id=None):
     """
     Runs the full pipeline, routing by file type:
-      - .vtt / .txt / .doc / .md  → Sherlock AI VTT API (bypasses Steps 1 & 2)
-      - .docx                     → FastAPI Steps 1 & 2
+      - .docx  → try FastAPI Steps 1 & 2 first; if that fails, fall back to VTT API silently
+      - .vtt / .txt / .doc / .md  → Sherlock AI VTT API directly
     Both paths converge at Step 3 (generate Word document).
     """
     def _update(step, status, message='', output_file=''):
@@ -144,75 +144,80 @@ def process_pipeline(prospect_name, filename, file_data, job_id=None):
         existing_master = download_from_azure(master_data_path)
         master_data = json.loads(existing_master) if existing_master else {}
 
-        if is_vtt_file(filename):
-            # ── VTT / TXT path: Sherlock AI VTT API ─────────────────────────
+        use_vtt = is_vtt_file(filename)
+
+        if not use_vtt:
+            # ── DOCX path: try FastAPI Steps 1 & 2 first ────────────────────
+            _update(step=1, status='running', message='Converting DOCX to JSON...')
+            try:
+                files = {'file': (filename, file_data,
+                                  'application/vnd.openxmlformats-officedocument.wordprocessingml.document')}
+                response_1 = requests.post(FASTAPI_ENDPOINT_1, files=files, timeout=120)
+                response_1.raise_for_status()
+                new_parsed_data = response_1.json()
+
+                if 'parsed_data' in new_parsed_data:
+                    new_parsed_data = new_parsed_data['parsed_data']
+
+                parsed_json_path = f"{prospect_name}/input/parsed.json"
+                existing_parsed = download_from_azure(parsed_json_path)
+
+                if existing_parsed:
+                    parsed_master = json.loads(existing_parsed)
+                    for section_name, section_data in new_parsed_data.items():
+                        if section_name in parsed_master:
+                            for subsection_name, subsection_data in section_data.items():
+                                if subsection_name in parsed_master[section_name]:
+                                    parsed_master[section_name][subsection_name]['content'] += ' ' + subsection_data.get('content', '')
+                                    parsed_master[section_name][subsection_name]['images'].update(subsection_data.get('images', {}))
+                                else:
+                                    parsed_master[section_name][subsection_name] = subsection_data
+                        else:
+                            parsed_master[section_name] = section_data
+                else:
+                    parsed_master = new_parsed_data
+
+                upload_to_azure(prospect_name, 'input', 'parsed.json',
+                                json.dumps(parsed_master, indent=2).encode('utf-8'))
+
+                _update(step=2, status='running', message='AI summarising content...')
+
+                response_2 = requests.post(
+                    FASTAPI_ENDPOINT_2,
+                    json={'parsed_data': new_parsed_data},
+                    headers={'Content-Type': 'application/json'}
+                )
+                response_2.raise_for_status()
+                new_summarized_data = response_2.json()
+
+                if 'summarized_data' in new_summarized_data:
+                    new_summarized_data = new_summarized_data['summarized_data']
+
+                for section_name, section_data in new_summarized_data.items():
+                    if section_name in master_data:
+                        for analysis_section, analysis_data in section_data.items():
+                            if analysis_section in master_data[section_name]:
+                                master_data[section_name][analysis_section]['content'] += '\n\n' + analysis_data.get('content', '')
+                                master_data[section_name][analysis_section]['images'].update(analysis_data.get('images', {}))
+                            else:
+                                master_data[section_name][analysis_section] = analysis_data
+                    else:
+                        master_data[section_name] = section_data
+
+                upload_to_azure(prospect_name, 'input', 'master_data.json',
+                                json.dumps(master_data, indent=2).encode('utf-8'))
+
+            except Exception:
+                use_vtt = True
+
+        if use_vtt:
+            # ── VTT path (native or DOCX fallback): Sherlock AI VTT API ─────
             _update(step=1, status='running', message='Sending transcript to Sherlock AI VTT...')
 
             vtt_json = get_vtt_json_from_bytes([(filename, file_data)])
             master_data = merge_vtt_json_into_master(master_data, vtt_json)
 
-            _update(step=2, status='running', message='Merging VTT profile into master data...')
-
-            upload_to_azure(prospect_name, 'input', 'master_data.json',
-                            json.dumps(master_data, indent=2).encode('utf-8'))
-
-        else:
-            # ── DOCX path: existing Steps 1 & 2 ─────────────────────────────
-            _update(step=1, status='running', message='Converting DOCX to JSON...')
-
-            files = {'file': (filename, file_data,
-                              'application/vnd.openxmlformats-officedocument.wordprocessingml.document')}
-            response_1 = requests.post(FASTAPI_ENDPOINT_1, files=files)
-            response_1.raise_for_status()
-            new_parsed_data = response_1.json()
-
-            if 'parsed_data' in new_parsed_data:
-                new_parsed_data = new_parsed_data['parsed_data']
-
-            parsed_json_path = f"{prospect_name}/input/parsed.json"
-            existing_parsed = download_from_azure(parsed_json_path)
-
-            if existing_parsed:
-                parsed_master = json.loads(existing_parsed)
-                for section_name, section_data in new_parsed_data.items():
-                    if section_name in parsed_master:
-                        for subsection_name, subsection_data in section_data.items():
-                            if subsection_name in parsed_master[section_name]:
-                                parsed_master[section_name][subsection_name]['content'] += ' ' + subsection_data.get('content', '')
-                                parsed_master[section_name][subsection_name]['images'].update(subsection_data.get('images', {}))
-                            else:
-                                parsed_master[section_name][subsection_name] = subsection_data
-                    else:
-                        parsed_master[section_name] = section_data
-            else:
-                parsed_master = new_parsed_data
-
-            upload_to_azure(prospect_name, 'input', 'parsed.json',
-                            json.dumps(parsed_master, indent=2).encode('utf-8'))
-
-            _update(step=2, status='running', message='AI summarising content...')
-
-            response_2 = requests.post(
-                FASTAPI_ENDPOINT_2,
-                json={'parsed_data': new_parsed_data},
-                headers={'Content-Type': 'application/json'}
-            )
-            response_2.raise_for_status()
-            new_summarized_data = response_2.json()
-
-            if 'summarized_data' in new_summarized_data:
-                new_summarized_data = new_summarized_data['summarized_data']
-
-            for section_name, section_data in new_summarized_data.items():
-                if section_name in master_data:
-                    for analysis_section, analysis_data in section_data.items():
-                        if analysis_section in master_data[section_name]:
-                            master_data[section_name][analysis_section]['content'] += '\n\n' + analysis_data.get('content', '')
-                            master_data[section_name][analysis_section]['images'].update(analysis_data.get('images', {}))
-                        else:
-                            master_data[section_name][analysis_section] = analysis_data
-                else:
-                    master_data[section_name] = section_data
+            _update(step=2, status='running', message='Merging profile into master data...')
 
             upload_to_azure(prospect_name, 'input', 'master_data.json',
                             json.dumps(master_data, indent=2).encode('utf-8'))
