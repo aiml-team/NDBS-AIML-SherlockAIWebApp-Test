@@ -1,0 +1,6 @@
+Flask
+azure-storage-blob
+requests
+Werkzeug
+python-dotenv
+mammoth

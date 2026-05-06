@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtualenvs
+venv/
+.venv/
+env/
+sherlockai_web_app_venv/
+
+# macOS
+.DS_Store
+
+# Secrets & local config
+.env
+.env.local
+
+# Logs
+*.log
+app.log

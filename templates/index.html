@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sherlock AI — Prospect List</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #f5f7fa;
+      --bg2:       #ffffff;
+      --bg3:       #f0f3f8;
+      --border:    #e2e8f0;
+      --border2:   #cbd5e1;
+      --blue:      #2563eb;
+      --blue-lt:   #eff6ff;
+      --blue-mid:  #bfdbfe;
+      --blue-dark: #1d4ed8;
+      --teal:      #0891b2;
+      --teal-lt:   #ecfeff;
+      --green:     #059669;
+      --green-lt:  #ecfdf5;
+      --red:       #dc2626;
+      --red-lt:    #fef2f2;
+      --amber:     #d97706;
+      --amber-lt:  #fffbeb;
+      --text:      #0f172a;
+      --text2:     #475569;
+      --text3:     #94a3b8;
+      --white:     #ffffff;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    html, body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 0 40px;
+      height: 62px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: var(--shadow-sm);
+      position: sticky;
+      top: 0;
+      z-index: 200;
+    }
+
+    .header-left { display: flex; align-items: center; gap: 16px; }
+
+    .hamburger-btn {
+      background: none; border: none; cursor: pointer;
+      display: flex; flex-direction: column; gap: 5px;
+      padding: 6px; border-radius: 8px;
+      transition: background 0.15s;
+    }
+    .hamburger-btn:hover { background: var(--bg3); }
+    .hamburger-btn span {
+      display: block; width: 22px; height: 2px;
+      background: var(--text2); border-radius: 2px; transition: background 0.15s;
+    }
+
+    .logo { display: flex; align-items: center; gap: 11px; }
+    .logo-mark {
+      width: 34px; height: 34px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-mark img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .logo-text { display: flex; flex-direction: column; gap: 1px; }
+    .logo-name { font-size: 15px; font-weight: 800; color: var(--text); letter-spacing: -0.01em; }
+    .logo-sub  { font-size: 9.5px; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; font-family: 'JetBrains Mono', monospace; }
+
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .header-logo-img { height: 32px; }
+
+    .chip {
+      font-size: 10.5px; font-weight: 600;
+      padding: 4px 10px; border-radius: 20px; border: 1px solid;
+      font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em;
+    }
+    .chip-blue  { color: var(--blue);  border-color: var(--blue-mid);  background: var(--blue-lt); }
+    .chip-teal  { color: var(--teal);  border-color: #a5f3fc;          background: var(--teal-lt); }
+
+    /* ── Side Menu Overlay ── */
+    #overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 998;
+      opacity: 0; visibility: hidden;
+      transition: opacity 0.25s, visibility 0.25s;
+    }
+    #overlay.open { opacity: 1; visibility: visible; }
+
+    /* ── Side Menu ── */
+    #sideMenu {
+      position: fixed; top: 0; left: -340px;
+      width: 320px; height: 100vh;
+      background: var(--white);
+      box-shadow: var(--shadow-md);
+      z-index: 999;
+      display: flex; flex-direction: column;
+      transition: left 0.28s cubic-bezier(0.4,0,0.2,1);
+      border-right: 1px solid var(--border);
+    }
+    #sideMenu.open { left: 0; }
+
+    .side-menu-head {
+      padding: 20px 22px 18px;
+      border-bottom: 3px solid var(--teal);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .side-menu-title { font-size: 13px; font-weight: 700; color: var(--text2); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.06em; text-transform: uppercase; }
+    .side-close-btn {
+      background: none; border: none; cursor: pointer;
+      color: var(--text2); font-size: 18px; padding: 4px;
+      border-radius: 6px; line-height: 1; transition: background 0.15s;
+    }
+    .side-close-btn:hover { background: var(--bg3); color: var(--text); }
+
+    .side-menu-body { padding: 12px 10px; flex: 1; overflow-y: auto; }
+    .side-nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 14px; border-radius: 10px;
+      cursor: pointer; font-size: 14px; font-weight: 500; color: var(--text2);
+      transition: background 0.15s, color 0.15s; text-decoration: none;
+      margin-bottom: 2px;
+    }
+    .side-nav-item:hover { background: var(--blue-lt); color: var(--blue); }
+    .side-nav-icon { font-size: 16px; flex-shrink: 0; }
+    .side-menu-ver {
+      padding: 14px 22px;
+      border-top: 1px solid var(--border);
+      font-size: 11px; color: var(--text3); font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(135deg, #1e40af 0%, #0891b2 60%, #0d9488 100%);
+      padding: 36px 40px 32px;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .hero-inner { max-width: 960px; margin: 0 auto; position: relative; }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+      color: rgba(255,255,255,0.9); font-size: 10.5px; font-weight: 600;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 5px 13px; border-radius: 20px; margin-bottom: 13px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .hero-title { font-size: 26px; font-weight: 800; color: #fff; line-height: 1.2; letter-spacing: -0.02em; margin-bottom: 7px; }
+    .hero-sub   { font-size: 13px; color: rgba(255,255,255,0.75); line-height: 1.65; max-width: 500px; }
+
+    /* ── Main ── */
+    main {
+      flex: 1;
+      max-width: 960px; margin: 0 auto; width: 100%;
+      padding: 20px 40px 16px;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    /* ── Search + action bar ── */
+    .toolbar {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
+    }
+    .search-wrap {
+      flex: 1; position: relative;
+    }
+    .search-icon {
+      position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+      color: var(--text3); pointer-events: none;
+    }
+    .search-icon svg { width: 15px; height: 15px; stroke: currentColor; fill: none; display: block; }
+    #searchInput {
+      width: 100%; padding: 10px 14px 10px 40px;
+      border: 1px solid var(--border); border-radius: 10px;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13.5px;
+      background: var(--white); color: var(--text);
+      outline: none; transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    #searchInput:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+    #searchInput::placeholder { color: var(--text3); }
+
+    .create-btn {
+      display: flex; align-items: center; gap: 7px;
+      background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+      color: white; border: none; padding: 10px 18px;
+      border-radius: 10px; font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 13.5px; font-weight: 700; cursor: pointer; white-space: nowrap;
+      box-shadow: 0 3px 12px rgba(37,99,235,0.3);
+      transition: all 0.15s; text-decoration: none;
+    }
+    .create-btn:hover { transform: translateY(-1px); box-shadow: 0 5px 16px rgba(37,99,235,0.4); }
+    .create-btn svg { width: 14px; height: 14px; fill: white; }
+
+    /* ── Prospect Card Table ── */
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+    }
+
+    #prospectList {
+      flex: 1;
+      overflow-y: auto;
+      min-height: 0;
+    }
+    #prospectList::-webkit-scrollbar { width: 6px; }
+    #prospectList::-webkit-scrollbar-track { background: transparent; }
+    #prospectList::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+    #prospectList::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+    .table-head {
+      display: grid; grid-template-columns: 1fr 200px;
+      background: linear-gradient(90deg, #1e40af, #0891b2);
+      padding: 13px 22px;
+    }
+    .th {
+      font-size: 10.5px; font-weight: 700; color: rgba(255,255,255,0.85);
+      text-transform: uppercase; letter-spacing: 0.1em;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .prospect-row {
+      display: grid; grid-template-columns: 1fr 200px;
+      padding: 14px 22px;
+      border-bottom: 1px solid var(--border);
+      align-items: center;
+      transition: background 0.12s;
+    }
+    .prospect-row:last-child { border-bottom: none; }
+    .prospect-row:hover { background: var(--bg); }
+
+    .prospect-name {
+      font-size: 14px; font-weight: 600; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      padding-right: 16px;
+    }
+
+    .row-actions { display: flex; gap: 8px; justify-content: flex-start; }
+
+    .btn-view {
+      display: flex; align-items: center; gap: 5px;
+      background: var(--blue-lt); color: var(--blue);
+      border: 1px solid var(--blue-mid);
+      padding: 6px 13px; border-radius: 8px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 12px; font-weight: 600; cursor: pointer;
+      transition: all 0.12s; white-space: nowrap;
+    }
+    .btn-view:hover { background: var(--blue); color: white; border-color: var(--blue); }
+
+    .btn-delete {
+      display: flex; align-items: center; gap: 5px;
+      background: var(--red-lt); color: var(--red);
+      border: 1px solid #fecaca;
+      padding: 6px 13px; border-radius: 8px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 12px; font-weight: 600; cursor: pointer;
+      transition: all 0.12s; white-space: nowrap;
+    }
+    .btn-delete:hover { background: var(--red); color: white; border-color: var(--red); }
+
+    .empty-state {
+      padding: 60px 20px; text-align: center; color: var(--text3);
+    }
+    .empty-state svg { width: 40px; height: 40px; stroke: var(--border2); fill: none; margin: 0 auto 14px; display: block; }
+    .empty-state p { font-size: 14px; }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--white); border-top: 1px solid var(--border);
+      padding: 10px 40px; display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .footer-copy { font-size: 11px; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+    .footer-chips { display: flex; gap: 6px; }
+
+    @media (max-width: 640px) {
+      header { padding: 0 16px; }
+      .hero  { padding: 28px 16px 24px; }
+      main   { padding: 20px 16px 48px; }
+      .table-head { grid-template-columns: 1fr 160px; }
+      .prospect-row { grid-template-columns: 1fr 160px; }
+      footer { padding: 14px 16px; flex-direction: column; gap: 8px; }
+      .header-chips { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Overlay -->
+<div id="overlay" onclick="closeMenu()"></div>
+
+<!-- Side Menu -->
+<div id="sideMenu">
+  <div class="side-menu-head">
+    <span class="side-menu-title">Navigation</span>
+    <button class="side-close-btn" onclick="closeMenu()">✕</button>
+  </div>
+  <nav class="side-menu-body">
+    <a class="side-nav-item" href="#" onclick="openLink('https://itellicloud.sharepoint.com/sites/US-saleshub/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FUS%2Dsaleshub%2FShared%20Documents%2F06%2D%20Digital%20Innovations%20Internal%20Documents%2FArtificial%20Intelligence%20and%20Machine%20Learning%20Projects%2F2026%20%2D%20Sherlock%20AI%202%2FSherlock%20AI%202%20v1%2E0%2E0%2FPDF%20v1%2E0%2FRelease%20Document%20%2D%20Sherlock%20AI%202%20v1%2E0%2E0%2Epdf&parent=%2Fsites%2FUS%2Dsaleshub%2FShared%20Documents%2F06%2D%20Digital%20Innovations%20Internal%20Documents%2FArtificial%20Intelligence%20and%20Machine%20Learning%20Projects%2F2026%20%2D%20Sherlock%20AI%202%2FSherlock%20AI%202%20v1%2E0%2E0%2FPDF%20v1%2E0')">
+      <span class="side-nav-icon">📄</span> Release Document
+    </a>
+    <a class="side-nav-item" href="#" onclick="openLink('https://itellicloud.sharepoint.com/sites/US-saleshub/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FUS%2Dsaleshub%2FShared%20Documents%2F06%2D%20Digital%20Innovations%20Internal%20Documents%2FArtificial%20Intelligence%20and%20Machine%20Learning%20Projects%2F2026%20%2D%20Sherlock%20AI%202%2FSherlock%20AI%202%20v1%2E0%2E0%2FPDF%20v1%2E0%2FSherlock%20AI%202%20%2D%20User%20Manual%2Epdf&parent=%2Fsites%2FUS%2Dsaleshub%2FShared%20Documents%2F06%2D%20Digital%20Innovations%20Internal%20Documents%2FArtificial%20Intelligence%20and%20Machine%20Learning%20Projects%2F2026%20%2D%20Sherlock%20AI%202%2FSherlock%20AI%202%20v1%2E0%2E0%2FPDF%20v1%2E0')">
+      <span class="side-nav-icon">📘</span> User Manual
+    </a>
+    <a class="side-nav-item" href="#" onclick="openLink('https://forms.office.com/Pages/DesignPageV2.aspx?subpage=design&token=dfddf7e323af43bb9dc636b16ea3ce46&id=Gd7ERvwPVEyqhu5ydK-p1ypLotnXSFBLsOBkdbM0WSpUQ0JIUlFNVUlDTUNPTE1TSDc5OTdNWjFWWi4u')">
+      <span class="side-nav-icon">💬</span> Feedback Form
+    </a>
+    <a class="side-nav-item" href="#" onclick="openLink('https://itellicloud.sharepoint.com/sites/NACSP/Customer%20Pursuit/Forms/Library%20View.aspx?viewid=4df010a7%2D72b5%2D485d%2D814d%2D9bd0aff376f1&csf=1&CID=affdba80%2Dc69e%2D4c33%2D85d5%2D5c2c59ed141f&FolderCTID=0x01200094F5A2167C3A454C8C9D39629369F809&ovuser=46c4de19%2D0ffc%2D4c54%2Daa86%2Dee7274afa9d7%2CNaveen%2ESomalapuri%40bs%2Enttdata%2Ecom&OR=Teams%2DHL&CT=1771940805105&clickparams=eyJBcHBOYW1lIjoiVGVhbXMtRGVza3RvcCIsIkFwcFZlcnNpb24iOiI1MC8yNjAxMDQwMDkyNSJ9')">
+      <span class="side-nav-icon">🌐</span> Customer Pursuit Library
+    </a>
+  </nav>
+  <div class="side-menu-ver">Version: 1.0.0</div>
+</div>
+
+<!-- Header -->
+<header>
+  <div class="header-left">
+    <button class="hamburger-btn" onclick="openMenu()" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="logo">
+      <div class="logo-mark">
+        <img src="{{ url_for('static', filename='Sherlock Logo - May 2026.png') }}" alt="Sherlock AI logo">
+      </div>
+      <div class="logo-text">
+        <div class="logo-name">Sherlock AI</div>
+        <div class="logo-sub">Document Pipeline</div>
+      </div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="chip chip-blue" style="display:none" id="hchip1">Azure GPT-4o</span>
+    <img src="{{ url_for('static', filename='Logo-Blue.png') }}" class="header-logo-img" alt="NTT Data Logo">
+  </div>
+</header>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">
+      <svg width="7" height="7" viewBox="0 0 8 8" fill="currentColor"><circle cx="4" cy="4" r="4"/></svg>
+      AI-Powered Document Processing
+    </div>
+    <h1 class="hero-title">Prospect List</h1>
+    <p class="hero-sub">Select a prospect to upload transcripts, generate customer profiles, and download AI-produced documents.</p>
+  </div>
+</div>
+
+<!-- Main -->
+<main>
+  <div class="toolbar">
+    <div class="search-wrap">
+      <span class="search-icon">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      </span>
+      <input id="searchInput" type="text" placeholder="Search prospects…" oninput="filterProspects()">
+    </div>
+    <a href="{{ url_for('create_prospect') }}" class="create-btn">
+      <svg viewBox="0 0 20 20"><path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"/></svg>
+      New Prospect
+    </a>
+  </div>
+
+  <div class="card">
+    <div class="table-head">
+      <span class="th">Prospect Name</span>
+      <span class="th">Actions</span>
+    </div>
+
+    <div id="prospectList">
+      {% for prospect in prospects %}
+      <div class="prospect-row" data-name="{{ prospect.prospect_name | lower }}">
+        <span class="prospect-name">{{ prospect.prospect_name }}</span>
+        <div class="row-actions">
+          <button class="btn-view" onclick="goTo('/view-prospect/{{ prospect.prospect_name }}')">View</button>
+          <button class="btn-delete" onclick="deleteProspect('{{ prospect.prospect_name }}')">Delete</button>
+        </div>
+      </div>
+      {% else %}
+      <div class="empty-state" id="emptyState">
+        <svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 12h6m-3-3v6M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <p>No prospects yet — create one to get started.</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</main>
+
+<footer>
+  <span class="footer-copy">© Sherlock AI · NTT DATA Business Solutions</span>
+  <div class="footer-chips">
+    <span class="chip chip-blue">Azure GPT-4o</span>
+    <span class="chip chip-teal">FastAPI</span>
+  </div>
+</footer>
+
+<script>
+function openMenu() {
+  document.getElementById('sideMenu').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+}
+function closeMenu() {
+  document.getElementById('sideMenu').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+function openLink(url) {
+  window.open(url, '_blank');
+  closeMenu();
+  return false;
+}
+function filterProspects() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  document.querySelectorAll('.prospect-row').forEach(row => {
+    row.style.display = row.dataset.name.includes(q) ? '' : 'none';
+  });
+}
+function goTo(url) { window.location.href = url; }
+function deleteProspect(name) {
+  if (confirm(`Delete prospect "${name}"?`)) {
+    fetch(`/delete-prospect/${name}`, { method: 'POST' }).then(() => location.reload());
+  }
+}
+</script>
+</body>
+</html>
