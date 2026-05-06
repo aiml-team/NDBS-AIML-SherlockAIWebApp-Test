@@ -495,6 +495,14 @@
             height: 14px;
             fill: currentColor;
         }
+        .web-toggle-note {
+            display: none;
+            font-size: 11.5px;
+            font-style: italic;
+            color: var(--text3);
+            margin: 6px 0 0;
+            line-height: 1.4;
+        }
 
         /* ── Processing animation ── */
         #processingAnimation {
@@ -978,6 +986,7 @@
                             Generate Document
                         </button>
                     </div>
+                    <p class="web-toggle-note">Enhance business context in section 1 of output document.</p>
 
                     <div id="processingAnimation">
                         <div class="bounce-dots">
@@ -1138,11 +1147,15 @@
             const row = document.getElementById('generateRow');
             row.style.display = 'flex';
             row.classList.add('visible');
+            const note = document.querySelector('.web-toggle-note');
+            if (note) note.style.display = 'block';
         }
         function hideGenerateRow() {
             const row = document.getElementById('generateRow');
             row.style.display = 'none';
             row.classList.remove('visible');
+            const note = document.querySelector('.web-toggle-note');
+            if (note) note.style.display = 'none';
         }
         function onWebToggleChange() {
             const cb = document.getElementById('webSearchToggle');

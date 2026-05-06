@@ -323,6 +323,11 @@
     .web-toggle input:checked ~ .switch::after { transform: translateX(14px); }
     .web-toggle.on { border-color: var(--blue, #2563eb); background: var(--blue-lt, #eff6ff); color: var(--blue-dark, #1d4ed8); }
     .web-toggle svg { width: 14px; height: 14px; fill: currentColor; }
+    .web-toggle-note {
+      display: none;
+      font-size: 11.5px; font-style: italic; color: var(--text3, #94a3b8);
+      margin: 6px 0 0; line-height: 1.4;
+    }
 
     /* ── Processing animation ── */
     #processingAnimation {
@@ -559,6 +564,7 @@
                 Generate Document
               </button>
             </div>
+            <p class="web-toggle-note">Enhance business context in section 1 of output document.</p>
 
             <div id="processingAnimation">
               <div class="bounce-dots">
@@ -869,9 +875,13 @@ function startPolling(jobId, totalFilesAfterUpload) {
 /* ── Generate row + Internet Search toggle helpers ── */
 function showGenerateRow() {
   document.getElementById('generateRow').style.display = 'flex';
+  const note = document.querySelector('.web-toggle-note');
+  if (note) note.style.display = 'block';
 }
 function hideGenerateRow() {
   document.getElementById('generateRow').style.display = 'none';
+  const note = document.querySelector('.web-toggle-note');
+  if (note) note.style.display = 'none';
 }
 function onWebToggleChange() {
   const cb = document.getElementById('webSearchToggle');
