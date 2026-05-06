@@ -5,7 +5,7 @@ import os
 
 VTT_API_BASE = os.environ.get(
     'VTT_API_BASE',
-    'https://ndbs-aiml-sherlockaiteamstranscript-ewgucedve0cad6e2.westeurope-01.azurewebsites.net'
+    'https://ndbs-aiml-sherlock-ai-teams-vtt-test-h0gkaydgdvc6fsbd.westeurope-01.azurewebsites.net/'
 ).rstrip('/')
 
 VTT_SUPPORTED_EXTENSIONS = {'.vtt', '.txt', '.doc', '.md'}
