@@ -429,7 +429,7 @@
 
         /* ── Generate row + Internet Search toggle ── */
         #generateRow {
-            display: none;
+            display: flex;
             align-items: stretch;
             gap: 10px;
             margin-bottom: 14px;
@@ -971,7 +971,7 @@
 
                     <div id="selectedFile"></div>
 
-                    <div id="generateRow" class="visible" style="display:none;">
+                    <div id="generateRow" class="visible">
                         <label class="web-toggle" id="webToggleLabel" title="Use Tavily web search to enrich the document with public information about the company">
                             <input type="checkbox" id="webSearchToggle" onchange="onWebToggleChange()" />
                             <span class="switch"></span>
