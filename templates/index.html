@@ -78,12 +78,9 @@
     .logo { display: flex; align-items: center; gap: 11px; }
     .logo-mark {
       width: 34px; height: 34px;
-      background: linear-gradient(135deg, var(--blue), var(--teal));
-      border-radius: 9px;
       display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 2px 8px rgba(37,99,235,0.3);
     }
-    .logo-mark svg { width: 17px; height: 17px; fill: white; }
+    .logo-mark img { width: 100%; height: 100%; object-fit: contain; display: block; }
     .logo-text { display: flex; flex-direction: column; gap: 1px; }
     .logo-name { font-size: 15px; font-weight: 800; color: var(--text); letter-spacing: -0.01em; }
     .logo-sub  { font-size: 9.5px; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; font-family: 'JetBrains Mono', monospace; }
@@ -354,12 +351,7 @@
     </button>
     <div class="logo">
       <div class="logo-mark">
-        <svg viewBox="0 0 18 18">
-          <rect x="1" y="1" width="7" height="7" rx="1.5"/>
-          <rect x="10" y="1" width="7" height="7" rx="1.5" opacity="0.7"/>
-          <rect x="1" y="10" width="7" height="7" rx="1.5" opacity="0.7"/>
-          <rect x="10" y="10" width="7" height="7" rx="1.5" opacity="0.4"/>
-        </svg>
+        <img src="{{ url_for('static', filename='Sherlock Logo - May 2026.png') }}" alt="Sherlock AI logo">
       </div>
       <div class="logo-text">
         <div class="logo-name">Sherlock AI</div>

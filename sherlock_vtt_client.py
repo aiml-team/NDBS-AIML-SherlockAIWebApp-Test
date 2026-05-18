@@ -16,27 +16,41 @@ def is_vtt_file(filename):
     return ext in VTT_SUPPORTED_EXTENSIONS
 
 
-def get_vtt_json_from_bytes(file_tuples, timeout_upload=60, poll_interval=3, timeout_fetch=60):
+VTT_POLL_MAX_SECONDS = int(os.environ.get('VTT_POLL_MAX_SECONDS', '1500'))  # 25 min
+
+
+def get_vtt_json_from_bytes(file_tuples, timeout_upload=60, poll_interval=3,
+                            timeout_fetch=60, max_wait_seconds=None,
+                            prospect_name=None):
     """
     Upload transcript files to Sherlock AI VTT, wait for processing,
     and return the extracted structured JSON.
 
-    file_tuples: list of (filename, file_bytes) tuples
+    file_tuples:    list of (filename, file_bytes) tuples
+    prospect_name:  optional client/prospect name; when supplied, the VTT
+                    service uses it to fill the cover page and includes it
+                    in the returned JSON.
     Returns: dict — the structured SAP Customer Discovery Profile JSON
     Raises: Exception on upload error, processing error, or timeout
     """
+    if max_wait_seconds is None:
+        max_wait_seconds = VTT_POLL_MAX_SECONDS
+
     files = [
         ('files', (name, data, 'application/octet-stream'))
         for name, data in file_tuples
     ]
+    data = {'prospect_name': prospect_name} if prospect_name else None
 
-    r = requests.post(f'{VTT_API_BASE}/process', files=files, timeout=timeout_upload)
+    r = requests.post(f'{VTT_API_BASE}/process', files=files, data=data,
+                      timeout=timeout_upload)
     r.raise_for_status()
 
     job_id = r.json().get('job_id')
     if not job_id:
         raise Exception('Sherlock AI VTT did not return a job_id')
 
+    waited = 0
     while True:
         s = requests.get(f'{VTT_API_BASE}/status/{job_id}', timeout=15).json()
         status = s.get('status')
@@ -46,7 +60,14 @@ def get_vtt_json_from_bytes(file_tuples, timeout_upload=60, poll_interval=3, tim
         if status == 'error':
             raise Exception(f"Sherlock AI VTT processing error: {s.get('error', 'unknown')}")
 
+        if waited >= max_wait_seconds:
+            raise TimeoutError(
+                f"Sherlock AI VTT job {job_id} did not finish within {max_wait_seconds}s "
+                f"(last status: {status!r})"
+            )
+
         time.sleep(poll_interval)
+        waited += poll_interval
 
     result = requests.get(f'{VTT_API_BASE}/json/{job_id}', timeout=timeout_fetch)
     result.raise_for_status()
