@@ -444,14 +444,14 @@ def process_pipeline(prospect_name, filename, file_data, job_id=None, internet_s
                 if docx_failed_reason:
                     logger.info("VTT fallback succeeded after: %s", docx_failed_reason)
 
-            # ── Optional: fill missing fields with Tavily web research ────────
+            # ── Optional: build Section 1 company profile from Tavily web research ─
             # Tavily is scoped to Section 1 (Customer/Business Overview) only,
             # so any non-zero fill count means Section 1 was enriched and we
             # need to flag it for the renderer (it will inject a fact-check
             # disclaimer immediately under the Section 1 heading).
             if internet_search:
                 _update(step=2, status='running',
-                        message='Filling missing fields from the web...')
+                        message='Building Section 1 company profile from the web...')
                 try:
                     _, filled_count = enrich_master_data_with_web(
                         master_data, prospect_name, logger=logger.info
@@ -459,7 +459,7 @@ def process_pipeline(prospect_name, filename, file_data, job_id=None, internet_s
                     if filled_count:
                         master_data['_internet_research_used'] = True
                         _update(step=2, status='running',
-                                message=f'Filled {filled_count} missing field(s) from the web')
+                                message=f'Enriched {filled_count} Section 1 field(s) from the web')
                 except Exception:
                     logger.exception("Internet search enrichment failed; continuing without it")
                 # Always persist whatever we have, even on partial failure.

@@ -1,12 +1,14 @@
 """
-Tavily web-search enrichment for Sherlock AI — gap-fill mode.
+Tavily web-search enrichment for Sherlock AI — Section 1 company profile.
 
-When the user enables the Internet Search toggle, we walk every field in
-master_data, identify gaps (empty, very short, or marker phrases like
-"N/A" / "Not discussed"), and fill each gap with a Tavily-synthesised
-answer plus a couple of source citations. Fields with substantive
-transcript-derived content — or with embedded image placeholders — are
-left untouched so the original meeting context is preserved.
+When the user enables the Internet Search toggle and a company name can be
+resolved, we walk every factual field in Section 1 (Customer / Business
+Overview) and run a Tavily search per field to build a comprehensive
+company profile. If the transcript already produced real content for a
+field, the web research block is appended below it; if the field was empty
+or sparse, the web research becomes the field's content. Non-factual
+meeting-specific fields (pain_points, wishlist, action_items, …) and
+fields containing image placeholders are left untouched.
 """
 import logging
 import os
@@ -17,7 +19,12 @@ import requests
 log = logging.getLogger(__name__)
 
 TAVILY_API_URL = "https://api.tavily.com/search"
-TAVILY_API_KEY = os.environ.get("TAVILY_API_KEY", "").strip()
+
+
+def _get_tavily_api_key():
+    # Read lazily so the key is picked up even when this module is imported
+    # before load_dotenv() runs in app.py.
+    return os.environ.get("TAVILY_API_KEY", "").strip()
 
 SKIP_SECTIONS = {"client_name", "document_date", "prospect_name",
                  "_internet_research_used"}
@@ -75,6 +82,7 @@ ACRONYM_EXPANSIONS = {
 # about the company.
 NON_FACTUAL_FIELDS = {
     "schedule_of_events",
+    "contacts_identified",
     "pain_points",
     "major_gaps_and_integrations",
     "proposed_sap_solutions_mapping",
@@ -85,6 +93,89 @@ NON_FACTUAL_FIELDS = {
     "action_items",
     "next_steps",
 }
+
+
+# Per-field query templates. {company} is substituted at runtime. A template
+# tuned to the field (e.g. "{company} annual revenue 2025") gets vastly
+# better Tavily results than a generic "{company} Customer Business Overview
+# Revenue Band" mash. Fields not in this map fall back to a generic template.
+# When `None`, the field is enterprise-internal data (SAP user counts,
+# system landscape specifics) where Tavily has nothing useful — we skip the
+# search and write a "no public information" marker directly.
+FIELD_QUERY_TEMPLATES = {
+    "industry_categorization":                  "{company} industry sector primary business",
+    "revenue_band":                             "{company} annual revenue latest fiscal year",
+    "legal_entities_and_names":                 "{company} legal entity name subsidiaries corporate structure",
+    "business_locations":                       "{company} headquarters offices global locations",
+    "fiscal_year_format":                       "{company} fiscal year end calendar",
+    "total_sap_users":                          None,
+    "system_landscape":                         "{company} IT systems ERP technology stack",
+    "key_value_drivers":                        "{company} strategic value drivers growth priorities",
+    "motivation_s_for_transformation":          "{company} digital transformation initiative drivers",
+    "motivations_for_transformation":           "{company} digital transformation initiative drivers",
+    "motivation_for_transformation":            "{company} digital transformation initiative drivers",
+    "areas_of_perceived_competitive_advantage": "{company} competitive advantage market position strengths",
+    "perceived_change_resistance":              None,
+    "technical_challenges_and_requirements":    "{company} technology challenges modernization requirements",
+    "regulatory_compliance_requirements":       "{company} regulatory compliance industry requirements",
+    "transformation_program_c_suite_kpis":      "{company} strategic priorities CEO KPIs annual report",
+    "key_public_cloud_disqualifiers":           None,
+}
+
+
+NO_INFO_MARKER_TEMPLATE = (
+    "[Internet Research]\n"
+    "• No public information found for \"{field}\" — this is internal to {company} "
+    "and must be supplied by the customer."
+)
+
+
+# Canonical Section 1 (General Business Overview) field keys, matching
+# TEMPLATE_SCHEMA in the VTT backend and the renderer's expected keys.
+# Extractors only emit keys for fields they found content for, so most of
+# these are missing from master_data when the transcript is sparse. We seed
+# them all here so the enrichment loop can fill them from the web.
+SECTION_1_CANONICAL_KEY = "General_Business_Overview"
+SECTION_1_CANONICAL_FIELDS = (
+    "Schedule_of_Events",
+    "Contacts_Identified",
+    "Industry_Categorization",
+    "Revenue_Band",
+    "Legal_Entities_and_Names",
+    "Business_Locations",
+    "Fiscal_Year_Format",
+    "Total_SAP_Users",
+    "System_Landscape",
+    "Key_Value_Drivers",
+    "Motivations_for_Transformation",
+    "Areas_of_Perceived_Competitive_Advantage",
+    "Perceived_Change_Resistance",
+    "Technical_Challenges_and_Requirements",
+    "Regulatory_Compliance_Requirements",
+    "Transformation_Program_C_Suite_KPIs",
+    "Key_Public_Cloud_Disqualifiers",
+)
+
+
+def _ensure_section_1_seeded(master_data):
+    """Ensure master_data has a Section 1 dict and every canonical subsection
+    key exists (empty {"content": ""} for any that are missing). Mutates in
+    place; returns the section dict so the caller can iterate it.
+    """
+    section_key = None
+    for k in master_data:
+        if isinstance(master_data.get(k), dict) and _slugify(k) in ENRICH_ONLY_SECTIONS:
+            section_key = k
+            break
+    if section_key is None:
+        section_key = SECTION_1_CANONICAL_KEY
+        master_data[section_key] = {}
+
+    section_data = master_data[section_key]
+    for field in SECTION_1_CANONICAL_FIELDS:
+        if field not in section_data:
+            section_data[field] = {"content": ""}
+    return section_data
 
 
 def _humanize(name):
@@ -131,7 +222,8 @@ def _has_images(field_value):
 
 
 def _tavily_search(query):
-    if not TAVILY_API_KEY:
+    api_key = _get_tavily_api_key()
+    if not api_key:
         raise RuntimeError("TAVILY_API_KEY is not configured")
     payload = {
         "query": query,
@@ -140,7 +232,7 @@ def _tavily_search(query):
         "max_results": MAX_SOURCES_IN_OUTPUT,
     }
     headers = {
-        "Authorization": f"Bearer {TAVILY_API_KEY}",
+        "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
     }
     r = requests.post(TAVILY_API_URL, json=payload, headers=headers, timeout=SEARCH_TIMEOUT)
@@ -209,7 +301,7 @@ def _format_gap_fill(data):
     if not answer and not sources:
         return ""
 
-    lines = ["[Internet Research — auto-filled gap]"]
+    lines = ["[Internet Research]"]
 
     for bullet in _split_into_bullets(answer):
         lines.append(f"• {bullet}")
@@ -225,6 +317,18 @@ def _format_gap_fill(data):
     return "\n".join(lines)
 
 
+def _combine_existing_and_web(existing_content, web_block):
+    """Return the new field content. If existing content is a gap (empty /
+    short / "N/A" / etc.) the web block replaces it; otherwise the web block
+    is appended below the existing content so transcript context stays on top.
+    """
+    if not web_block:
+        return existing_content or ""
+    if _is_gap(existing_content):
+        return web_block
+    return f"{existing_content.rstrip()}\n\n{web_block}"
+
+
 def _resolve_company(master_data, prospect_name):
     name = (master_data.get("client_name") or "").strip()
     if name:
@@ -234,22 +338,30 @@ def _resolve_company(master_data, prospect_name):
 
 def enrich_master_data_with_web(master_data, prospect_name, logger=None):
     """
-    Mutates master_data in place. For each field detected as a gap, runs
-    one Tavily search and writes the answer into that field. Fields with
-    real transcript content or embedded images are left untouched.
-    Returns (master_data, filled_count).
+    Mutates master_data in place. For every factual Section 1 field, runs
+    one Tavily search about the resolved company and writes the result into
+    that field. Existing transcript content is preserved by appending the
+    web block below it; empty/sparse fields are populated from web data
+    alone. Non-factual meeting-specific fields and fields containing image
+    placeholders are skipped. Returns (master_data, filled_count) where
+    filled_count is the number of fields whose content was modified.
     """
     log_fn = logger or log.info
 
     if not isinstance(master_data, dict) or not master_data:
         return master_data, 0
-    if not TAVILY_API_KEY:
+    if not _get_tavily_api_key():
         log_fn("[Tavily] skipping enrichment: TAVILY_API_KEY not set")
         return master_data, 0
 
     company = _resolve_company(master_data, prospect_name)
     if not company:
         return master_data, 0
+
+    # Make sure every canonical Section 1 field exists in master_data before
+    # we iterate — extractors only emit keys for fields they found content
+    # for, so most subsections are missing when the transcript is sparse.
+    _ensure_section_1_seeded(master_data)
 
     filled = 0
     searches = 0
@@ -263,13 +375,7 @@ def enrich_master_data_with_web(master_data, prospect_name, logger=None):
         if _slugify(section_name) not in ENRICH_ONLY_SECTIONS:
             continue
 
-        section_label = _humanize(section_name)
-
         for field_name, field_value in list(section_data.items()):
-            if searches >= MAX_SEARCHES_PER_RUN:
-                log_fn(f"[Tavily] hit per-run cap ({MAX_SEARCHES_PER_RUN}); stopping")
-                return master_data, filled
-
             if _slugify(field_name) in NON_FACTUAL_FIELDS:
                 continue
             if _has_images(field_value):
@@ -280,27 +386,57 @@ def enrich_master_data_with_web(master_data, prospect_name, logger=None):
             else:
                 content = "" if field_value is None else str(field_value)
 
-            if not _is_gap(content):
-                continue
-
             field_label = _humanize(field_name)
-            query = f"{company} {section_label} {field_label}".strip()
-            searches += 1
-            try:
-                data = _tavily_search(query)
-            except Exception as e:
-                log_fn(f"[Tavily] '{query}' failed: {e}")
-                continue
+            field_slug = _slugify(field_name)
 
-            text = _format_gap_fill(data)
-            if not text:
+            # Internal-only fields: no point asking Tavily, write the marker.
+            if field_slug in FIELD_QUERY_TEMPLATES and FIELD_QUERY_TEMPLATES[field_slug] is None:
+                web_block = NO_INFO_MARKER_TEMPLATE.format(
+                    field=field_label, company=company
+                )
+            else:
+                if searches >= MAX_SEARCHES_PER_RUN:
+                    log_fn(f"[Tavily] hit per-run cap ({MAX_SEARCHES_PER_RUN}); stopping")
+                    return master_data, filled
+
+                primary_tpl = FIELD_QUERY_TEMPLATES.get(
+                    field_slug, "{company} " + field_label
+                )
+                primary_q = primary_tpl.format(company=company).strip()
+                web_block = _search_and_format(primary_q, log_fn)
+                searches += 1
+
+                # Retry once with a generic query if first attempt was empty.
+                if not web_block and searches < MAX_SEARCHES_PER_RUN:
+                    fallback_q = f"{company} company profile {field_label}".strip()
+                    if fallback_q != primary_q:
+                        web_block = _search_and_format(fallback_q, log_fn)
+                        searches += 1
+
+                if not web_block:
+                    web_block = NO_INFO_MARKER_TEMPLATE.format(
+                        field=field_label, company=company
+                    )
+
+            new_content = _combine_existing_and_web(content, web_block)
+            if new_content == content:
                 continue
 
             if isinstance(field_value, dict):
-                field_value["content"] = text
+                field_value["content"] = new_content
             else:
-                section_data[field_name] = {"content": text}
+                section_data[field_name] = {"content": new_content}
             filled += 1
 
-    log_fn(f"[Tavily] gap-fill complete: filled {filled} field(s) from {searches} search(es)")
+    log_fn(f"[Tavily] enrichment complete: filled {filled} field(s) from {searches} search(es)")
     return master_data, filled
+
+
+def _search_and_format(query, log_fn):
+    """Run one Tavily search; return the formatted block or '' on empty/error."""
+    try:
+        data = _tavily_search(query)
+    except Exception as e:
+        log_fn(f"[Tavily] '{query}' failed: {e}")
+        return ""
+    return _format_gap_fill(data)
