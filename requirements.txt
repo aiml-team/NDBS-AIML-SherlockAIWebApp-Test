@@ -1,0 +1,29 @@
+# Flask server
+flask>=3.0
+flask-cors
+werkzeug
+markupsafe
+
+# Azure
+azure-storage-blob
+python-dotenv
+requests
+
+# Document processing
+python-docx
+docxtpl
+mammoth
+
+# AI / LLM
+langchain
+langchain-openai
+langchain-text-splitters
+langchain-core
+openai
+
+# Transcript parsing (VTT pipeline)
+webvtt-py
+httpx
+
+# Search
+tavily-python

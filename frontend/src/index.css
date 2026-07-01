@@ -1,0 +1,122 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root {
+    height: 100%;
+  }
+
+  html {
+    /* OpenType: enable contextual alternates + stylistic sets in Plus Jakarta Sans */
+    font-feature-settings:
+      "ss01" on,    /* alternative single-storey 'a' */
+      "ss03" on,    /* alternative 'g' */
+      "cv11" on,    /* refined 'l' */
+      "kern" on;    /* explicit kerning */
+    font-optical-sizing: auto;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply font-sans bg-bg text-ink antialiased overflow-hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.005em;
+  }
+
+  /* Tight display tracking — large bold text is most premium with slightly negative tracking */
+  h1, h2, .heading {
+    letter-spacing: -0.022em;
+    text-wrap: balance;
+  }
+  h3, h4 {
+    letter-spacing: -0.012em;
+  }
+
+  /* Refined focus ring — single layered ring instead of double */
+  button, a, input, [tabindex]:not([tabindex="-1"]) {
+    @apply outline-none;
+  }
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  [tabindex]:focus-visible {
+    box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px rgba(29, 78, 216, 0.55);
+    border-radius: 8px;
+    transition: box-shadow 0.12s ease;
+  }
+
+  ::selection {
+    background: rgba(29, 78, 216, 0.18);
+  }
+
+  /* Use tabular numerals everywhere by default for clean number alignment */
+  .num, time, .font-mono {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer utilities {
+  /* Scrollbar — thinner, more premium */
+  .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 9999px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+  /* Page-load fade — smoother spring */
+  .page-fade {
+    animation: page-fade 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  @keyframes page-fade {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Premium shimmer for skeletons */
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  .shimmer::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.55) 50%,
+      transparent 100%
+    );
+    animation: shimmer 1.6s linear infinite;
+  }
+
+  /* Frosted-glass for sticky surfaces */
+  .glass {
+    backdrop-filter: saturate(180%) blur(12px);
+    -webkit-backdrop-filter: saturate(180%) blur(12px);
+    background: rgba(255, 255, 255, 0.78);
+  }
+
+  /* Hairline divider with subtle gradient instead of flat border */
+  .divider-gradient {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      #e2e8f0 20%,
+      #e2e8f0 80%,
+      transparent 100%
+    );
+    height: 1px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+}

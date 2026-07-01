@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 460" fill="none">
+  <defs>
+    <linearGradient id="screen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#dbeafe"/>
+      <stop offset="1" stop-color="#bfdbfe"/>
+    </linearGradient>
+    <linearGradient id="laptopBase" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#bfdbfe"/>
+      <stop offset="1" stop-color="#93c5fd"/>
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#eff6ff"/>
+      <stop offset="1" stop-color="#dbeafe"/>
+    </linearGradient>
+    <linearGradient id="plant" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#bfdbfe"/>
+      <stop offset="1" stop-color="#60a5fa"/>
+    </linearGradient>
+    <linearGradient id="scanLine" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2563eb" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#2563eb" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#2563eb" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#1d4ed8" flood-opacity="0.12"/>
+    </filter>
+    <!-- Clip path keeps the scan line inside the form mockup card -->
+    <clipPath id="screenClip">
+      <rect x="170" y="188" width="180" height="138" rx="12"/>
+    </clipPath>
+  </defs>
+
+  <!-- Decorative dot grid (top-left) -->
+  <g fill="#bfdbfe" opacity="0.7">
+    <circle cx="40"  cy="60"  r="3"/>
+    <circle cx="60"  cy="60"  r="3"/>
+    <circle cx="80"  cy="60"  r="3"/>
+    <circle cx="40"  cy="80"  r="3"/>
+    <circle cx="60"  cy="80"  r="3"/>
+    <circle cx="80"  cy="80"  r="3"/>
+    <circle cx="40"  cy="100" r="3"/>
+    <circle cx="60"  cy="100" r="3"/>
+    <circle cx="80"  cy="100" r="3"/>
+  </g>
+
+  <!-- Soft cloud blob behind the laptop -->
+  <ellipse cx="260" cy="350" rx="220" ry="20" fill="#dbeafe" opacity="0.5"/>
+
+  <!-- ── Laptop ─────────────────────────────────── -->
+  <g filter="url(#softShadow)">
+    <!-- Hinge / base -->
+    <rect x="80" y="340" width="360" height="14" rx="7" fill="url(#laptopBase)"/>
+    <!-- Screen back -->
+    <rect x="100" y="140" width="320" height="210" rx="14" fill="#1d4ed8"/>
+    <!-- Screen face -->
+    <rect x="108" y="148" width="304" height="194" rx="10" fill="url(#screen)"/>
+
+    <!-- Browser-chrome dots -->
+    <circle cx="124" cy="164" r="3.5" fill="#fca5a5"/>
+    <circle cx="136" cy="164" r="3.5" fill="#fcd34d"/>
+    <circle cx="148" cy="164" r="3.5" fill="#86efac"/>
+    <rect x="170" y="158" width="220" height="12" rx="6" fill="#ffffff"/>
+
+    <!-- Login mock card on screen -->
+    <rect x="170" y="188" width="180" height="138" rx="12" fill="#ffffff" stroke="#bfdbfe"/>
+
+    <!-- "Sign In" title -->
+    <rect x="210" y="200" width="100" height="8" rx="2" fill="#1d4ed8"/>
+
+    <!-- Email field -->
+    <rect x="184" y="222" width="152" height="20" rx="10" fill="#eff6ff" stroke="#bfdbfe"/>
+    <circle cx="196" cy="232" r="3.5" fill="#60a5fa"/>
+    <rect x="206" y="229" width="60" height="6" rx="2" fill="#bfdbfe"/>
+
+    <!-- Password field -->
+    <rect x="184" y="250" width="152" height="20" rx="10" fill="#eff6ff" stroke="#bfdbfe"/>
+    <circle cx="196" cy="260" r="3.5" fill="#60a5fa"/>
+    <rect x="206" y="257" width="80" height="6" rx="2" fill="#bfdbfe"/>
+
+    <!-- Button -->
+    <rect x="184" y="282" width="152" height="22" rx="11" fill="#2563eb"/>
+    <rect x="244" y="290" width="32" height="6" rx="2" fill="#ffffff"/>
+
+    <!-- Camera notch / top -->
+    <circle cx="260" cy="142" r="1.6" fill="#1d4ed8" opacity="0.5"/>
+
+    <!-- ★ SCANNING LINE — sweeps down the form mockup, clipped to its bounds ★ -->
+    <g clip-path="url(#screenClip)">
+      <rect x="170" y="186" width="180" height="3" fill="url(#scanLine)" opacity="0.85">
+        <animate
+          attributeName="y"
+          values="186;323;186"
+          keyTimes="0;0.55;1"
+          dur="3.6s"
+          repeatCount="indefinite"
+          calcMode="spline"
+          keySplines="0.4 0 0.6 1; 0 0 1 1"
+        />
+        <animate
+          attributeName="opacity"
+          values="0;0.85;0.85;0"
+          keyTimes="0;0.1;0.5;0.55"
+          dur="3.6s"
+          repeatCount="indefinite"
+        />
+      </rect>
+    </g>
+  </g>
+
+  <!-- ── Floating notification card (top-right of laptop) ─── -->
+  <g filter="url(#softShadow)">
+    <!-- Gentle vertical drift -->
+    <animateTransform
+      attributeName="transform"
+      type="translate"
+      values="0,0; 0,-4; 0,0"
+      dur="4.5s"
+      repeatCount="indefinite"
+    />
+    <rect x="368" y="100" width="120" height="64" rx="14" fill="url(#cardGrad)" stroke="#bfdbfe"/>
+    <circle cx="386" cy="124" r="9" fill="#2563eb">
+      <animate
+        attributeName="r"
+        values="9;10.5;9"
+        dur="1.8s"
+        repeatCount="indefinite"
+      />
+      <animate
+        attributeName="fill-opacity"
+        values="1;0.7;1"
+        dur="1.8s"
+        repeatCount="indefinite"
+      />
+    </circle>
+    <path d="M382 124 l3 3 l6 -6" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <rect x="402" y="118" width="70" height="6" rx="2" fill="#1d4ed8"/>
+    <rect x="402" y="130" width="50" height="5" rx="2" fill="#93c5fd"/>
+  </g>
+
+  <!-- ── Small badge (bottom-left of laptop) ─── -->
+  <g filter="url(#softShadow)">
+    <!-- Opposite-phase drift for visual rhythm -->
+    <animateTransform
+      attributeName="transform"
+      type="translate"
+      values="0,0; 0,3; 0,0"
+      dur="4.5s"
+      repeatCount="indefinite"
+    />
+    <rect x="36" y="240" width="80" height="44" rx="12" fill="url(#cardGrad)" stroke="#bfdbfe"/>
+    <circle cx="56" cy="262" r="9" fill="#bfdbfe"/>
+    <path d="M52 262 a4 4 0 1 0 8 0 a4 4 0 1 0 -8 0" stroke="#2563eb" stroke-width="1.6" fill="none"/>
+    <rect x="74" y="256" width="34" height="5" rx="2" fill="#1d4ed8"/>
+    <rect x="74" y="266" width="22" height="5" rx="2" fill="#93c5fd"/>
+  </g>
+
+  <!-- ── "AI · ACTIVE" floating pill above the laptop ─── -->
+  <g filter="url(#softShadow)">
+    <animateTransform
+      attributeName="transform"
+      type="translate"
+      values="0,0; 0,-3; 0,0"
+      dur="3.2s"
+      repeatCount="indefinite"
+    />
+    <rect x="208" y="78" width="104" height="26" rx="13" fill="#ffffff" stroke="#bfdbfe"/>
+    <!-- Pulsing green dot — "AI is active" -->
+    <circle cx="222" cy="91" r="3.5" fill="#15803d">
+      <animate attributeName="opacity" values="1;0.35;1" dur="1.2s" repeatCount="indefinite"/>
+      <animate attributeName="r" values="3.5;4.5;3.5" dur="1.2s" repeatCount="indefinite"/>
+    </circle>
+    <!-- "AI · ACTIVE" represented as mono rects to stay style-consistent -->
+    <rect x="234" y="86.5" width="10" height="9" rx="1.5" fill="#1d4ed8"/>
+    <rect x="248" y="89.5" width="3" height="3" rx="1" fill="#1d4ed8"/>
+    <rect x="256" y="86.5" width="42" height="9" rx="1.5" fill="#1d4ed8"/>
+  </g>
+
+  <!-- ── Plant (right of laptop) ─── -->
+  <g>
+    <!-- Pot -->
+    <path d="M420 386 L432 420 L470 420 L482 386 Z" fill="#2563eb"/>
+    <path d="M418 384 L484 384 L482 392 L420 392 Z" fill="#1d4ed8"/>
+    <!-- Leaves with gentle sway -->
+    <g>
+      <animateTransform
+        attributeName="transform"
+        type="rotate"
+        values="-1 450 384; 1.5 450 384; -1 450 384"
+        dur="5.5s"
+        repeatCount="indefinite"
+      />
+      <ellipse cx="438" cy="358" rx="8" ry="22" fill="url(#plant)" transform="rotate(-20 438 358)"/>
+      <ellipse cx="460" cy="350" rx="8" ry="26" fill="url(#plant)" transform="rotate(10 460 350)"/>
+      <ellipse cx="450" cy="344" rx="6" ry="18" fill="#60a5fa" transform="rotate(-5 450 344)"/>
+    </g>
+  </g>
+
+  <!-- ── Coffee mug (left of laptop) ─── -->
+  <g>
+    <rect x="44" y="380" width="40" height="36" rx="6" fill="#ffffff" stroke="#bfdbfe" stroke-width="2"/>
+    <path d="M84 388 q12 4 0 22" fill="none" stroke="#bfdbfe" stroke-width="2"/>
+    <!-- Rising steam wisps -->
+    <path d="M52 374 q4 -8 8 0" stroke="#93c5fd" stroke-width="1.6" fill="none" stroke-linecap="round" opacity="0.8">
+      <animate attributeName="opacity" values="0.2;0.9;0.2" dur="2.8s" repeatCount="indefinite"/>
+      <animateTransform attributeName="transform" type="translate" values="0,0; -2,-6; 0,0" dur="2.8s" repeatCount="indefinite"/>
+    </path>
+    <path d="M66 372 q4 -8 8 0" stroke="#93c5fd" stroke-width="1.6" fill="none" stroke-linecap="round" opacity="0.8">
+      <animate attributeName="opacity" values="0.9;0.2;0.9" dur="2.8s" repeatCount="indefinite"/>
+      <animateTransform attributeName="transform" type="translate" values="0,0; 2,-6; 0,0" dur="2.8s" repeatCount="indefinite"/>
+    </path>
+  </g>
+
+  <!-- ── Twinkling sparkles ─── -->
+  <g fill="#60a5fa">
+    <circle cx="380" cy="60" r="3">
+      <animate attributeName="opacity" values="0.3;1;0.3" dur="2.4s" repeatCount="indefinite"/>
+      <animate attributeName="r" values="2.5;4;2.5" dur="2.4s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="410" cy="80" r="2">
+      <animate attributeName="opacity" values="0.4;1;0.4" dur="2.8s" begin="0.6s" repeatCount="indefinite"/>
+      <animate attributeName="r" values="1.5;3;1.5" dur="2.8s" begin="0.6s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="60" cy="180" r="2">
+      <animate attributeName="opacity" values="0.5;1;0.5" dur="3.2s" begin="1.2s" repeatCount="indefinite"/>
+      <animate attributeName="r" values="1.5;3;1.5" dur="3.2s" begin="1.2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="32" cy="320" r="3">
+      <animate attributeName="opacity" values="0.3;0.9;0.3" dur="2.6s" begin="0.3s" repeatCount="indefinite"/>
+      <animate attributeName="r" values="2.5;4;2.5" dur="2.6s" begin="0.3s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="500" cy="200" r="2">
+      <animate attributeName="opacity" values="0.4;1;0.4" dur="3s" begin="0.9s" repeatCount="indefinite"/>
+      <animate attributeName="r" values="1.5;3;1.5" dur="3s" begin="0.9s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <!-- Ground line -->
+  <line x1="20" y1="420" x2="500" y2="420" stroke="#bfdbfe" stroke-width="1.5" stroke-linecap="round"/>
+</svg>
