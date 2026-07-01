@@ -3,7 +3,7 @@ import json
 import re
 from typing import Dict, Any, List
 from langchain_openai import AzureChatOpenAI
-from langchain.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
