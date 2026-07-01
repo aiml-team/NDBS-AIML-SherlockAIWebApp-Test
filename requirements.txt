@@ -3,6 +3,7 @@ flask>=3.0
 flask-cors
 werkzeug
 markupsafe
+gunicorn
 
 # Azure
 azure-storage-blob
