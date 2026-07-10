@@ -15,7 +15,10 @@ from mailer import send_email
 
 logger = logging.getLogger('sherlock-web.auth')
 
-DB_PATH = os.path.join(os.path.dirname(__file__), 'users.db')
+# On Azure App Service, /home/site exists and /home/ is persistent across restarts.
+# Fall back to the local directory for dev.
+_DEFAULT_DB = '/home/users.db' if os.path.isdir('/home/site') else os.path.join(os.path.dirname(__file__), 'users.db')
+DB_PATH = os.environ.get('DB_PATH', _DEFAULT_DB)
 
 ALLOWED_DOMAINS = ('nttdata.com', 'bs.nttdata.com')
 EMAIL_RE = re.compile(r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')
@@ -42,6 +45,7 @@ def _admin_emails_from_env():
 
 
 def init_db():
+    os.makedirs(os.path.dirname(DB_PATH) or '.', exist_ok=True)
     with _conn() as c:
         c.executescript("""
             CREATE TABLE IF NOT EXISTS users (
