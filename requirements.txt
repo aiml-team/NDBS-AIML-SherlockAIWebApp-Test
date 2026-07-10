@@ -16,15 +16,13 @@ docxtpl
 mammoth
 
 # AI / LLM
+anthropic>=0.116.0
 langchain
-langchain-openai
 langchain-text-splitters
 langchain-core
-openai
 
 # Transcript parsing (VTT pipeline)
 webvtt-py
-httpx
 
 # Search
 tavily-python
