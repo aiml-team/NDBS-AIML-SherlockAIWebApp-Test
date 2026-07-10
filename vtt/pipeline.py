@@ -16,7 +16,8 @@ import logging
 import os
 import re
 
-import httpx
+import anthropic as _anthropic
+from anthropic import AsyncAnthropicFoundry
 from dotenv import load_dotenv
 
 from .tools import (
@@ -30,7 +31,7 @@ from .tools import (
     _clean_transcript,
 )
 
-load_dotenv()
+load_dotenv(override=True)
 logger = logging.getLogger(__name__)
 
 # ── Supported transcript extensions ────────────────────────────────────────────
@@ -54,107 +55,60 @@ def _sanitize(text: str) -> str:
     return _FILTER_RE.sub("[REDACTED]", text)
 
 
-# ── NTTHAI Claude client ───────────────────────────────────────────────────────
-class NTTHAIClient:
-    """
-    Async wrapper around the NTTHAI API (OpenAI-compatible).
-    Auth: Authorization: Bearer app:<api_id>:<api_secret>
-    """
-    _TIMEOUT = 300
+# ── Azure AI Foundry client ────────────────────────────────────────────────────
+class FoundryClient:
+    """Async wrapper around AsyncAnthropicFoundry for the VTT pipeline."""
 
-    def __init__(self, api_id: str, api_secret: str, base_url: str, model: str):
-        self.url = f"{base_url.rstrip('/')}/chat/completions"
+    def __init__(self, client: AsyncAnthropicFoundry, model: str):
+        self._client = client
         self.model = model
-        self.headers = {
-            "Authorization": f"Bearer app:{api_id}:{api_secret}",
-            "Content-Type": "application/json",
-        }
 
     async def chat(self, system: str, user: str, max_tokens: int = 8000) -> str:
-        payload = {
-            "model": self.model,
-            "max_tokens": max_tokens,
-            "messages": [
-                {"role": "system", "content": system},
-                {"role": "user", "content": user},
-            ],
-        }
         last_exc: Exception | None = None
 
         for attempt in range(1, 5):
             try:
-                async with httpx.AsyncClient(timeout=self._TIMEOUT) as http:
-                    resp = await http.post(self.url, headers=self.headers, json=payload)
-
-                if resp.status_code == 429:
-                    wait = int(resp.headers.get("Retry-After", 15 * attempt))
-                    logger.warning("NTTHAI 429 (attempt %d/4) — waiting %d s", attempt, wait)
-                    await asyncio.sleep(wait)
-                    last_exc = Exception(f"NTTHAI 429 (attempt {attempt})")
-                    continue
-
-                if resp.status_code in (500, 502, 503, 504):
-                    wait = 5 * attempt
-                    logger.warning("NTTHAI %d (attempt %d/4) — retrying in %d s", resp.status_code, attempt, wait)
-                    await asyncio.sleep(wait)
-                    last_exc = Exception(f"NTTHAI {resp.status_code} (attempt {attempt})")
-                    continue
-
-                if not resp.is_success:
-                    err_body = resp.text[:1000]
-                    logger.error("NTTHAI HTTP %d (attempt %d/4): %s", resp.status_code, attempt, err_body)
-                    resp.raise_for_status()
-
-                data = resp.json()
-                choices = data.get("choices", [])
-                if not choices:
-                    logger.warning("NTTHAI returned no choices (attempt %d/4): %s", attempt, str(data)[:300])
-                    last_exc = Exception("NTTHAI returned empty choices")
-                    await asyncio.sleep(5 * attempt)
-                    continue
-
-                text = choices[0].get("message", {}).get("content", "")
+                response = await self._client.messages.create(
+                    model=self.model,
+                    system=system,
+                    messages=[{"role": "user", "content": user}],
+                    max_tokens=max_tokens,
+                )
+                text = response.content[0].text if response.content else ""
                 if not text:
-                    logger.warning("NTTHAI empty content (attempt %d/4)", attempt)
-                    last_exc = Exception("NTTHAI returned empty content")
+                    logger.warning("Foundry empty content (attempt %d/4)", attempt)
                     await asyncio.sleep(5 * attempt)
+                    last_exc = Exception("Foundry returned empty content")
                     continue
-
                 return text
 
-            except httpx.TimeoutException as exc:
-                wait = 10 * attempt
-                logger.warning("NTTHAI TIMEOUT (attempt %d/4) — retrying in %d s", attempt, wait)
-                last_exc = exc
+            except _anthropic.RateLimitError as exc:
+                wait = 15 * attempt
+                logger.warning("Foundry 429 (attempt %d/4) — waiting %d s", attempt, wait)
                 await asyncio.sleep(wait)
-
-            except (httpx.ConnectError, httpx.ConnectTimeout) as exc:
-                logger.error("NTTHAI unreachable (DNS/connect): %s", exc)
-                raise RuntimeError(
-                    f"Cannot reach NTTHAI API ({self.url}). "
-                    "Check your internet connection."
-                ) from exc
-
-            except httpx.RequestError as exc:
-                wait = 5 * attempt
-                logger.warning("NTTHAI network error (attempt %d/4) %s: %s — retrying in %d s",
-                               attempt, type(exc).__name__, exc, wait)
                 last_exc = exc
-                await asyncio.sleep(wait)
 
-        raise last_exc or Exception("NTTHAI chat failed after 4 attempts")
+            except _anthropic.APIStatusError as exc:
+                if exc.status_code in (500, 502, 503, 504):
+                    wait = 5 * attempt
+                    logger.warning("Foundry %d (attempt %d/4) — retrying in %d s", exc.status_code, attempt, wait)
+                    await asyncio.sleep(wait)
+                    last_exc = exc
+                else:
+                    raise
+
+        raise last_exc or Exception("Foundry chat failed after 4 attempts")
 
 
-def _get_client() -> NTTHAIClient:
-    ntthai_id = os.getenv("NTTHAI_API_ID", "")
-    ntthai_secret = os.getenv("NTTHAI_API_SECRET", "")
-    ntthai_url = os.getenv("NTTHAI_BASE_URL", "https://api.ntthai.ai/v1")
-    ntthai_model = os.getenv("NTTHAI_MODEL", "claude-sonnet-4-5")
+def _get_client() -> FoundryClient:
+    api_key = os.getenv("ANTHROPIC_FOUNDRY_API_KEY", "")
+    base_url = os.getenv("ANTHROPIC_FOUNDRY_BASE_URL", "")
+    model = os.getenv("ANTHROPIC_FOUNDRY_MODEL", "claude-opus-4-7")
 
-    if not ntthai_id or not ntthai_secret:
-        raise RuntimeError("NTTHAI Claude not configured. Set NTTHAI_API_ID + NTTHAI_API_SECRET in .env")
+    if not api_key or not base_url:
+        raise RuntimeError("Foundry not configured. Set ANTHROPIC_FOUNDRY_API_KEY + ANTHROPIC_FOUNDRY_BASE_URL in .env")
 
-    return NTTHAIClient(ntthai_id, ntthai_secret, ntthai_url, ntthai_model)
+    return FoundryClient(AsyncAnthropicFoundry(api_key=api_key, base_url=base_url), model)
 
 
 # ── File parsing ───────────────────────────────────────────────────────────────
@@ -170,7 +124,7 @@ async def _extract_text(filename: str, raw: bytes) -> str:
 
 
 # ── LLM call helpers ───────────────────────────────────────────────────────────
-async def _extract_chunk(client: NTTHAIClient, chunk: str, idx: int, total: int,
+async def _extract_chunk(client: FoundryClient, chunk: str, idx: int, total: int,
                          bullet_points: bool = False) -> dict:
     system = get_extraction_system(bullet_points)
 
@@ -209,7 +163,7 @@ async def _extract_chunk(client: NTTHAIClient, chunk: str, idx: int, total: int,
         return {}
 
 
-async def _synthesize(client: NTTHAIClient, merged: dict, bullet_points: bool = False) -> dict:
+async def _synthesize(client: FoundryClient, merged: dict, bullet_points: bool = False) -> dict:
     merged_json = json.dumps(merged, indent=2)
     if len(merged_json) > 80_000:
         logger.warning("Merged data too large for synthesis (%d chars) — skipping", len(merged_json))
@@ -234,7 +188,7 @@ async def _run_pipeline_core(
     """
     # Step 1 — init client
     client = _get_client()
-    label = "NTTHAI Claude"
+    label = "Claude Opus 4.7 (Foundry)"
 
     # Step 2 — parse uploaded files
     all_text_parts = []
