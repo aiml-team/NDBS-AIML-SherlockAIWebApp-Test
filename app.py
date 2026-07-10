@@ -1122,13 +1122,15 @@ def serve_react(path):
     Known static files are served directly; everything else returns index.html
     so that React Router can handle client-side navigation.
     """
-    ensure_container_exists()
     if path:
         full = os.path.join(STATIC_DIR, path)
         if os.path.exists(full) and os.path.isfile(full):
             return send_from_directory(STATIC_DIR, path)
     return send_from_directory(STATIC_DIR, 'index.html')
 
+
+# ── One-time startup: ensure blob container exists ───────────────────────────
+ensure_container_exists()
 
 if __name__ == '__main__':
     host = os.environ.get('FLASK_HOST', '127.0.0.1')
