@@ -16,7 +16,7 @@ from flask_cors import CORS
 from werkzeug.utils import secure_filename
 
 from vtt import run_vtt_pipeline, is_vtt_file, merge_vtt_json_into_master
-from document_api import docx_to_parsed, summarize, render_docx, classify_industry_llm
+from document_api import docx_to_parsed, summarize, render_docx, classify_industry_llm, gap_fill
 from tavily_search import enrich_master_data_with_web
 import auth as auth_module
 import admin as admin_module
@@ -470,6 +470,30 @@ def _merge_section_tree(target, incoming, content_join='\n\n'):
     return target
 
 
+def _extract_transcript_text(filename: str, file_data: bytes) -> str:
+    """Extract plain text from a transcript file to use as gap-fill context."""
+    ext = os.path.splitext(filename.lower())[1]
+    try:
+        if ext in ('.vtt', '.txt', '.md'):
+            return file_data.decode('utf-8', errors='replace')
+        elif ext in ('.docx', '.doc'):
+            import mammoth
+            return mammoth.extract_raw_text(io.BytesIO(file_data)).value
+    except Exception:
+        pass
+    return ''
+
+
+def get_active_job_for_prospect(prospect_name: str):
+    """Return the job_id of any currently-running job for this prospect, or None."""
+    with jobs_lock:
+        for jid, jdata in jobs.items():
+            if jdata.get('prospect_name') == prospect_name and \
+               jdata.get('status') in ('starting', 'running'):
+                return jid
+    return None
+
+
 # ── DOCX parser sanity-check ─────────────────────────────────────────────────
 DOCX_PARSE_MIN_TOTAL_CONTENT_CHARS = 200
 
@@ -516,6 +540,7 @@ def process_pipeline(prospect_name, file_tuples, job_id=None, internet_search=Fa
             existing_master = download_from_azure(master_data_path)
             master_data = json.loads(existing_master) if existing_master else {}
             master_data['prospect_name'] = prospect_name
+            _transcript_texts = []  # raw text from VTT-path files, for gap-fill
 
             for file_idx, (filename, file_data) in enumerate(file_tuples, 1):
                 file_label = f"({file_idx}/{total_files}) {filename}" if total_files > 1 else filename
@@ -564,6 +589,10 @@ def process_pipeline(prospect_name, file_tuples, job_id=None, internet_search=Fa
                         use_vtt = True
 
                 if use_vtt:
+                    raw_text = _extract_transcript_text(filename, file_data)
+                    if raw_text:
+                        _transcript_texts.append(raw_text[:80000])
+
                     _update(step=1, status='running',
                             message=f'Sending transcript to AI extractor... {file_label}')
                     vtt_json = run_vtt_pipeline(
@@ -599,6 +628,20 @@ def process_pipeline(prospect_name, file_tuples, job_id=None, internet_search=Fa
                     prospect_name, 'input', 'master_data.json',
                     json.dumps(master_data, indent=2).encode('utf-8'),
                 )
+
+            # ── Gap-fill empty workstream sections from transcript ────────────
+            try:
+                _update(step=2, status='running',
+                        message='AI gap-filling empty workstream sections...')
+                combined_transcript = '\n\n=====\n\n'.join(_transcript_texts)[:120000]
+                master_data = gap_fill(master_data, transcript_text=combined_transcript,
+                                       bullet_points=bullet_points)
+                upload_to_azure(
+                    prospect_name, 'input', 'master_data.json',
+                    json.dumps(master_data, indent=2).encode('utf-8'),
+                )
+            except Exception:
+                logger.exception("Gap-fill step failed; continuing without it")
 
             # ── Normalise bullet chars before render ──────────────────────────
             if bullet_points:
@@ -725,6 +768,14 @@ def generate():
     if not candidates:
         return jsonify({'success': False,
                         'error': 'No supported files found (DOCX, VTT, TXT)'}), 400
+
+    existing_job = get_active_job_for_prospect(p)
+    if existing_job:
+        return jsonify({
+            'success': False,
+            'error': 'A generation is already running for this prospect. Please wait for it to finish.',
+            'active_job_id': existing_job,
+        }), 409
 
     file_tuples = []
     for fname in candidates:

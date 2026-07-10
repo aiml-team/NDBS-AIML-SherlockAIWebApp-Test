@@ -255,6 +255,13 @@ def render_docx(request_data: dict, template_path: str) -> bytes:
     return buf.getvalue()
 
 
+def gap_fill(master_data: dict, transcript_text: str = '', bullet_points: bool = False) -> dict:
+    """Gap-fill empty workstream sections from the full transcript."""
+    return JSONContentSummarizer(bullet_points=bullet_points).gap_fill_from_master(
+        master_data, transcript_text=transcript_text
+    )
+
+
 def classify_industry_llm(master_data: dict, prospect_name: str) -> str:
     """
     LLM-only industry classify using Azure OpenAI. Mirrors /classify-industry.
@@ -285,13 +292,12 @@ def classify_industry_llm(master_data: dict, prospect_name: str) -> str:
         if not content_snapshot and not prospect_name:
             return ""
 
-        from langchain_openai import AzureChatOpenAI
-        llm = AzureChatOpenAI(
-            deployment_name=os.getenv("AZURE_OPENAI_DEPLOYMENT"),
-            api_version=os.getenv("OPENAI_API_VERSION", "2024-02-15-preview"),
-            temperature=0,
-            max_tokens=20,
+        from anthropic import AnthropicFoundry
+        client = AnthropicFoundry(
+            api_key=os.getenv("ANTHROPIC_FOUNDRY_API_KEY"),
+            base_url=os.getenv("ANTHROPIC_FOUNDRY_BASE_URL"),
         )
+        model = os.getenv("ANTHROPIC_FOUNDRY_MODEL", "claude-opus-4-7")
 
         prompt = (
             f"Prospect name: {prospect_name}\n\n"
@@ -309,8 +315,12 @@ def classify_industry_llm(master_data: dict, prospect_name: str) -> str:
             "Respond with ONLY the single key (e.g. 'manufacturing') or 'none'. Nothing else."
         )
 
-        response = llm.invoke(prompt)
-        raw = response.content.strip().lower()
+        response = client.messages.create(
+            model=model,
+            max_tokens=20,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        raw = response.content[0].text.strip().lower() if response.content else 'none'
         first_token = raw.split()[0].rstrip('.,;:') if raw.split() else 'none'
         first_token = first_token.replace(' ', '_')
         key = first_token if first_token in _INDUSTRY_KEYS else ''

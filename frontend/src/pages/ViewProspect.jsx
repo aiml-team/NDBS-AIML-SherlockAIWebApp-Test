@@ -91,8 +91,13 @@ export default function ViewProspect() {
       const id = await startGenerate(prospectName, webSearch, bulletPoints, selected.map(f => f.name));
       setJobId(id);
     } catch (e) {
-      toast.error(e.message);
-      setGenerating(false);
+      if (e.status === 409 && e.body?.active_job_id) {
+        toast.info('A generation is already in progress — tracking it now.');
+        setJobId(e.body.active_job_id);
+      } else {
+        toast.error(e.message);
+        setGenerating(false);
+      }
     }
   }
 

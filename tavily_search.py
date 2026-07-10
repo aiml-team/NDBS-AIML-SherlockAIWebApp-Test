@@ -321,12 +321,64 @@ def _combine_existing_and_web(existing_content, web_block):
     """Return the new field content. If existing content is a gap (empty /
     short / "N/A" / etc.) the web block replaces it; otherwise the web block
     is appended below the existing content so transcript context stays on top.
+    If an [Internet Research] block is already present it is replaced rather
+    than stacked, preventing duplicates on re-generation.
     """
     if not web_block:
         return existing_content or ""
+    IR_MARKER = '[Internet Research]'
+    if existing_content and IR_MARKER in existing_content:
+        idx = existing_content.find(IR_MARKER)
+        before = existing_content[:idx].rstrip()
+        return f"{before}\n\n{web_block}".lstrip('\n') if before else web_block
     if _is_gap(existing_content):
         return web_block
     return f"{existing_content.rstrip()}\n\n{web_block}"
+
+
+# Common company suffix words that don't distinguish one company from another
+_COMPANY_STOP_WORDS = frozenset({
+    'inc', 'corp', 'llc', 'ltd', 'limited', 'company', 'co', 'group',
+    'holding', 'holdings', 'enterprise', 'enterprises', 'international',
+    'global', 'solutions', 'services', 'technologies', 'technology',
+    'industries', 'industry', 'systems', 'associates', 'partners',
+    'the', 'and', 'of', 'for',
+})
+
+
+def _company_tokens(company_name: str) -> list:
+    """Extract distinctive words (>=3 chars, not stop words) from a company name."""
+    tokens = re.findall(r"[A-Za-z]+", company_name)
+    return [t.lower() for t in tokens if len(t) >= 3 and t.lower() not in _COMPANY_STOP_WORDS]
+
+
+def _result_mentions_company(result: dict, tokens: list) -> bool:
+    """Return True if at least 2 distinctive company tokens appear in the result text."""
+    if not tokens:
+        return True
+    text = ' '.join([
+        result.get('title') or '',
+        result.get('url') or '',
+        result.get('content') or '',
+        result.get('snippet') or '',
+    ]).lower()
+    matches = sum(1 for t in tokens if t in text)
+    return matches >= min(2, len(tokens))
+
+
+def _filter_results_by_company(data: dict, tokens: list) -> dict:
+    """Remove Tavily results that don't appear to be about the target company."""
+    if not tokens:
+        return data
+    results = data.get('results') or []
+    filtered = [r for r in results if _result_mentions_company(r, tokens)]
+    if len(filtered) == len(results):
+        return data
+    if not filtered:
+        return {'answer': '', 'results': []}
+    answer = (data.get('answer') or '').lower()
+    answer_ok = sum(1 for t in tokens if t in answer) >= min(2, len(tokens))
+    return {'answer': data.get('answer', '') if answer_ok else '', 'results': filtered}
 
 
 def _resolve_company(master_data, prospect_name):
@@ -357,6 +409,8 @@ def enrich_master_data_with_web(master_data, prospect_name, logger=None):
     company = _resolve_company(master_data, prospect_name)
     if not company:
         return master_data, 0
+
+    ctokens = _company_tokens(company)
 
     # Make sure every canonical Section 1 field exists in master_data before
     # we iterate — extractors only emit keys for fields they found content
@@ -403,14 +457,14 @@ def enrich_master_data_with_web(master_data, prospect_name, logger=None):
                     field_slug, "{company} " + field_label
                 )
                 primary_q = primary_tpl.format(company=company).strip()
-                web_block = _search_and_format(primary_q, log_fn)
+                web_block = _search_and_format(primary_q, log_fn, company_tokens=ctokens)
                 searches += 1
 
                 # Retry once with a generic query if first attempt was empty.
                 if not web_block and searches < MAX_SEARCHES_PER_RUN:
                     fallback_q = f"{company} company profile {field_label}".strip()
                     if fallback_q != primary_q:
-                        web_block = _search_and_format(fallback_q, log_fn)
+                        web_block = _search_and_format(fallback_q, log_fn, company_tokens=ctokens)
                         searches += 1
 
                 if not web_block:
@@ -432,11 +486,14 @@ def enrich_master_data_with_web(master_data, prospect_name, logger=None):
     return master_data, filled
 
 
-def _search_and_format(query, log_fn):
-    """Run one Tavily search; return the formatted block or '' on empty/error."""
+def _search_and_format(query, log_fn, company_tokens=None):
+    """Run one Tavily search; return the formatted block or '' on empty/error.
+    When company_tokens is provided, results that don't mention the company are filtered out."""
     try:
         data = _tavily_search(query)
     except Exception as e:
         log_fn(f"[Tavily] '{query}' failed: {e}")
         return ""
+    if company_tokens:
+        data = _filter_results_by_company(data, company_tokens)
     return _format_gap_fill(data)
