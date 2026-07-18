@@ -13,7 +13,7 @@ const RESOURCES = [
       </svg>
     ),
     label: 'Release Document',
-    url: 'https://ndbsaimlsherlockaiwebapp.blob.core.windows.net/sherlockaidocs/Release_Document_-_Sherlock_AI_v2_0_0.docx?sp=r&st=2026-07-18T12:03:24Z&se=2027-12-31T20:18:24Z&spr=https&sv=2026-02-06&sr=b&sig=db%2BQFpY2w0GyKnRNQzHGYJJfGyplgYyEAXV369x5tbI%3D',
+    url: 'https://ndbsaimlsherlockaiwebapp.blob.core.windows.net/sherlockaidocs/Release_Document_-_Sherlock_AI_v2_0_0.docx?sp=r&st=2026-07-18T12:24:38Z&se=2027-12-31T20:39:38Z&spr=https&sv=2026-02-06&sr=b&sig=fAgm3bB2lxO9N9D%2Bhw4OjFV0SntsnEfDawp3Ckc7Z%2Fc%3D',
   },
   {
     icon: (
