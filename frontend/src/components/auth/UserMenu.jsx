@@ -53,10 +53,26 @@ function SectionLabel({ children }) {
   );
 }
 
+// Office files (.docx / .pptx / .xlsx) can't render natively in a browser.
+// Wrap the URL in Microsoft's free Office Web Viewer so the file previews
+// inline. This ensures exactly ONE tab opens per click (fixes the "double
+// tab" issue caused by Office 365 browser extensions intercepting raw
+// .docx/.pptx URLs).
+function toViewerUrl(url) {
+  if (typeof url !== 'string') return url;
+  // Strip any hash/fragment before checking extension.
+  const path = url.split('#')[0].split('?')[0].toLowerCase();
+  if (/\.(docx|pptx|xlsx|doc|ppt|xls)$/.test(path)) {
+    return `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(url)}`;
+  }
+  return url;
+}
+
 function ExternalLinkRow({ icon, label, url, onSelect }) {
+  const href = toViewerUrl(url);
   return (
     <a
-      href={url}
+      href={href}
       target="_blank"
       rel="noopener noreferrer"
       onClick={onSelect}
