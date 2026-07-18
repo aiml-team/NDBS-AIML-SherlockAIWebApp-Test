@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 
 const PING_INTERVAL_MS = 30_000;
 const PING_TIMEOUT_MS = 4_000;
-const VERSION = 'v1.0.0';
+const VERSION = 'v2.0.0';
 
 async function pingApi(signal) {
   // /api/auth/me responds 200 when signed in, 401 when not — both prove the

@@ -13,7 +13,7 @@ const RESOURCES = [
       </svg>
     ),
     label: 'Release Document',
-    url: 'https://itellicloud.sharepoint.com/:w:/r/sites/US-saleshub/_layouts/15/Doc.aspx?sourcedoc=%7B766F8320-0FEB-4246-865A-D4EE2B1EB953%7D&file=Release%20Document%20-%20Sherlock%20AI%202%20v1.0.0.docx&action=default&mobileredirect=true',
+    url: 'https://ndbsaimlsherlockaiwebapp.blob.core.windows.net/sherlockaidocs/Release_Document_-_Sherlock_AI_v2_0_0.docx?sp=r&st=2026-07-18T12:03:24Z&se=2027-12-31T20:18:24Z&spr=https&sv=2026-02-06&sr=b&sig=db%2BQFpY2w0GyKnRNQzHGYJJfGyplgYyEAXV369x5tbI%3D',
   },
   {
     icon: (
@@ -23,7 +23,7 @@ const RESOURCES = [
       </svg>
     ),
     label: 'User Manual',
-    url: 'https://itellicloud.sharepoint.com/:p:/r/sites/US-saleshub/_layouts/15/Doc.aspx?sourcedoc=%7B9C2FAD85-A64E-4228-8BF1-1C73970E199B%7D&file=Sherlock%20AI%202%20-%20User%20Manual.pptx&action=edit&mobileredirect=true',
+    url: 'https://ndbsaimlsherlockaiwebapp.blob.core.windows.net/sherlockaidocs/Sherlock_AI_User_Manual_NTT.pptx?sp=r&st=2026-07-18T12:06:12Z&se=2027-12-31T20:21:12Z&spr=https&sv=2026-02-06&sr=b&sig=V0lYjPzZqVB8Umctm%2F%2Fl4vs%2FRXNVjsCNwqEmMib8fb8%3D',
   },
   {
     icon: (
