@@ -1,4 +1,4 @@
-name: Build and deploy Python app to Azure Web App - NDBS-AIML-SherlockAIWebApp-Test
+name: Build and deploy Python app to Azure Web App - SherlockAIWebApp
 
 on:
   push:
@@ -8,9 +8,9 @@ on:
 
 jobs:
   build:
-    # Only run in the TEST repository. Prevents this workflow from firing in
-    # the prod repo (which has a separate workflow) after cross-repo pushes.
-    if: github.repository == 'aiml-team/NDBS-AIML-SherlockAIWebApp-Test'
+    # Only run in the PROD repository. Prevents this workflow from firing in
+    # the test repo (which has a separate workflow) after cross-repo pushes.
+    if: github.repository == 'aiml-team/NDBS-AIML-SherlockAIWebApp'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -50,7 +50,7 @@ jobs:
             !frontend/node_modules/
 
   deploy:
-    if: github.repository == 'aiml-team/NDBS-AIML-SherlockAIWebApp-Test'
+    if: github.repository == 'aiml-team/NDBS-AIML-SherlockAIWebApp'
     runs-on: ubuntu-latest
     needs: build
 
@@ -64,6 +64,6 @@ jobs:
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
         with:
-          app-name: 'NDBS-AIML-SherlockAIWebApp-Test'
+          app-name: 'SherlockAIWebApp'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_E0EC05500EAE4F16AF406B79FEB78424 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_C74768C04FC548DEA07C9D8C94CFB7E4 }}
