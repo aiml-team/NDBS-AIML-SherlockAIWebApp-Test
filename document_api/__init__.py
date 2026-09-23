@@ -15,6 +15,7 @@ from .docx_to_json import convert_docx_to_json_memory
 from .algorithm_from_json_to_required_json import parse_document_sections
 from .ai_summarizer import JSONContentSummarizer
 from .render_json_into_word import generate_document_in_memory
+from .conflict_consolidator import consolidate_master_data
 
 # ── SAP workstream sections list (mirrors Sherlock API/Sherlock_AI_ForAPI/main.py) ─
 SECTIONS_LIST = [
@@ -293,6 +294,10 @@ def classify_industry_llm(master_data: dict, prospect_name: str) -> str:
             return ""
 
         from anthropic import AnthropicFoundry
+        # anthropic>=0.121 auto-reads ANTHROPIC_FOUNDRY_RESOURCE from env and errors
+        # out if a base_url is also passed. We use base_url as the source of truth,
+        # so drop the shell-inherited RESOURCE for this process.
+        os.environ.pop("ANTHROPIC_FOUNDRY_RESOURCE", None)
         client = AnthropicFoundry(
             api_key=os.getenv("ANTHROPIC_FOUNDRY_API_KEY"),
             base_url=os.getenv("ANTHROPIC_FOUNDRY_BASE_URL"),

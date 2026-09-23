@@ -16,11 +16,12 @@ from flask_cors import CORS
 from werkzeug.utils import secure_filename
 
 from vtt import run_vtt_pipeline, is_vtt_file, merge_vtt_json_into_master
-from document_api import docx_to_parsed, summarize, render_docx, classify_industry_llm, gap_fill
+from document_api import docx_to_parsed, summarize, render_docx, classify_industry_llm, gap_fill, consolidate_master_data
 from tavily_search import enrich_master_data_with_web
 import auth as auth_module
 import admin as admin_module
 import feedback as feedback_module
+from backend.services import rag_service
 
 load_dotenv()
 
@@ -45,6 +46,7 @@ auth_module.init_db()
 auth_module.register_routes(app)
 admin_module.register_routes(app)
 feedback_module.register_routes(app)
+rag_service.register_routes(app)
 require_auth = auth_module.require_auth
 
 # ── Logging ─────────────────────────────────────────────────────────────────
@@ -643,6 +645,18 @@ def process_pipeline(prospect_name, file_tuples, job_id=None, internet_search=Fa
             except Exception:
                 logger.exception("Gap-fill step failed; continuing without it")
 
+            # ── Conflict consolidation & deduplication ────────────────────────
+            try:
+                _update(step=2, status='running',
+                        message='Detecting and deduplicating conflicts...')
+                master_data = consolidate_master_data(master_data)
+                upload_to_azure(
+                    prospect_name, 'input', 'master_data.json',
+                    json.dumps(master_data, indent=2).encode('utf-8'),
+                )
+            except Exception:
+                logger.exception("Conflict consolidation failed; continuing without it")
+
             # ── Normalise bullet chars before render ──────────────────────────
             if bullet_points:
                 _normalize_bullets(master_data)
@@ -1062,6 +1076,332 @@ def set_stage(prospect_name):
     except Exception as e:
         logger.exception("set_stage failed for %s", p)
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/prospect/<prospect_name>/conflicts', methods=['GET'])
+@require_auth
+def api_get_conflicts(prospect_name):
+    p = safe_prospect(prospect_name)
+    if not p:
+        return jsonify({'error': 'Invalid prospect name'}), 400
+    raw = download_from_azure(f"{p}/input/master_data.json")
+    if not raw:
+        return jsonify({'conflicts': [], 'prospect': p}), 200
+    try:
+        master_data = json.loads(raw)
+    except Exception:
+        return jsonify({'error': 'Corrupt master_data.json'}), 500
+    return jsonify({'conflicts': master_data.get('_conflicts', []), 'prospect': p}), 200
+
+
+@app.route('/api/prospect/<prospect_name>/resolve-conflict', methods=['POST'])
+@require_auth
+def api_resolve_conflict(prospect_name):
+    p = safe_prospect(prospect_name)
+    if not p:
+        return jsonify({'error': 'Invalid prospect name'}), 400
+    body = request.get_json(silent=True) or {}
+    conflict_id = (body.get('conflict_id') or '').strip()
+    chosen_value = (body.get('chosen_value') or '').strip()
+    if not conflict_id:
+        return jsonify({'error': 'conflict_id is required'}), 400
+    if not chosen_value:
+        return jsonify({'error': 'chosen_value is required'}), 400
+
+    prospect_lock = get_prospect_lock(p)
+    with prospect_lock:
+        raw = download_from_azure(f"{p}/input/master_data.json")
+        if not raw:
+            return jsonify({'error': 'master_data.json not found'}), 404
+        try:
+            master_data = json.loads(raw)
+        except Exception:
+            return jsonify({'error': 'Corrupt master_data.json'}), 500
+
+        conflicts = master_data.get('_conflicts', [])
+        target = next((c for c in conflicts if c.get('id') == conflict_id), None)
+        if not target:
+            return jsonify({'error': 'Conflict not found'}), 404
+
+        section = target['section']
+        field = target['field']
+        value_a = target.get('value_a', '')
+        value_b = target.get('value_b', '')
+        is_custom = chosen_value not in (value_a, value_b)
+
+        def _tokens(s):
+            return set(re.sub(r'[^\w]', ' ', s.lower()).split())
+
+        def _distinctive(val, other):
+            return (_tokens(val) - _tokens(other)) or _tokens(val)
+
+        def _line_matches(line, distinctive):
+            return len(_tokens(line) & distinctive) >= min(2, len(distinctive))
+
+        def _bullet_prefix(content):
+            """Return the bullet prefix used by most lines in content, or ''."""
+            for line in content.split('\n'):
+                s = line.strip()
+                for prefix in ('• ', '- ', '* '):
+                    if s.startswith(prefix):
+                        return prefix
+            return ''
+
+        def _fmt_custom(value, content):
+            """Prefix custom value with bullet if the field uses bullets."""
+            prefix = _bullet_prefix(content)
+            if prefix and not any(value.startswith(p) for p in ('• ', '- ', '* ')):
+                return prefix + value
+            return value
+
+        if is_custom:
+            # Custom value: remove lines matching BOTH value_a and value_b,
+            # then append the user-supplied value (formatted to match bullet style).
+            dist_a = _distinctive(value_a, value_b)
+            dist_b = _distinctive(value_b, value_a)
+
+            def _strip(content):
+                if not content:
+                    return chosen_value
+                lines = content.split('\n')
+                kept = [l for l in lines
+                        if not _line_matches(l, dist_a) and not _line_matches(l, dist_b)]
+                result = '\n'.join(l for l in kept if l.strip())
+                formatted = _fmt_custom(chosen_value, content)
+                return (result + '\n' + formatted) if result else formatted
+        else:
+            rejected = value_b if chosen_value == value_a else value_a
+            distinctive = _distinctive(rejected, chosen_value)
+
+            def _strip(content):
+                if not content:
+                    return chosen_value
+                lines = content.split('\n')
+                kept = [l for l in lines if not _line_matches(l, distinctive)]
+                return '\n'.join(l for l in kept if l.strip()) or chosen_value
+
+        logger.info(
+            "resolve_conflict: section=%s field=%s value_a=%r value_b=%r chosen=%r is_custom=%s",
+            section, field, value_a[:60], value_b[:60], chosen_value[:60], is_custom,
+        )
+
+        # Patch the conflict's own field
+        global_patched = 0
+        if section in master_data and isinstance(master_data[section], dict):
+            field_obj = master_data[section].get(field)
+            if isinstance(field_obj, dict):
+                before = field_obj.get('content', '')
+                after = _strip(before)
+                master_data[section][field]['content'] = after
+                logger.info("resolve_conflict: primary patch %s.%s  %d→%d chars", section, field, len(before), len(after))
+
+        # Also clean every other field that contains either conflicting value
+        for sec_name, sec_data in master_data.items():
+            if sec_name.startswith('_') or not isinstance(sec_data, dict):
+                continue
+            for fld_name, fld_data in sec_data.items():
+                if sec_name == section and fld_name == field:
+                    continue
+                if not isinstance(fld_data, dict):
+                    continue
+                content = fld_data.get('content', '')
+                if not content:
+                    continue
+                new_content = _strip(content)
+                if new_content != content:
+                    master_data[sec_name][fld_name]['content'] = new_content
+                    global_patched += 1
+                    logger.info("resolve_conflict: global patch %s.%s  %d→%d chars", sec_name, fld_name, len(content), len(new_content))
+
+        logger.info("resolve_conflict: global_patched=%d additional fields", global_patched)
+
+        target['status'] = 'resolved'
+        target['resolved_value'] = chosen_value
+
+        upload_to_azure(
+            p, 'input', 'master_data.json',
+            json.dumps(master_data, indent=2).encode('utf-8'),
+        )
+
+        # Re-render the Word document from the patched master_data so the
+        # output file reflects the resolved value immediately.
+        new_output_filename = None
+        try:
+            docx_bytes = render_docx(
+                {'summarized_data': master_data, 'prospect_name': p},
+                TEMPLATE_PATH,
+            )
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            new_output_filename = f"output_{p}_resolved_{timestamp}.docx"
+            upload_to_azure(p, 'output', new_output_filename, docx_bytes)
+            logger.info("resolve_conflict: regenerated doc %s", new_output_filename)
+        except Exception:
+            logger.exception("resolve_conflict: doc regeneration failed for %s", p)
+
+    remaining = len([c for c in conflicts if c.get('status') != 'resolved'])
+    logger.info("resolve_conflict: prospect=%s conflict_id=%s remaining=%d", p, conflict_id, remaining)
+    return jsonify({
+        'ok': True,
+        'resolved_value': chosen_value,
+        'remaining_conflicts': remaining,
+        'new_output_file': new_output_filename,
+    }), 200
+
+
+@app.route('/api/prospect/<prospect_name>/resolve-conflicts-batch', methods=['POST'])
+@require_auth
+def api_resolve_conflicts_batch(prospect_name):
+    p = safe_prospect(prospect_name)
+    if not p:
+        return jsonify({'error': 'Invalid prospect name'}), 400
+
+    body = request.get_json(silent=True) or {}
+    resolutions = body.get('resolutions', [])  # [{conflict_id, chosen_value}]
+    if not resolutions:
+        return jsonify({'error': 'resolutions required'}), 400
+
+    prospect_lock = get_prospect_lock(p)
+    with prospect_lock:
+        raw = download_from_azure(f"{p}/input/master_data.json")
+        if not raw:
+            return jsonify({'error': 'master_data.json not found'}), 404
+        try:
+            master_data = json.loads(raw)
+        except Exception:
+            return jsonify({'error': 'Corrupt master_data.json'}), 500
+
+        conflicts = master_data.get('_conflicts', [])
+
+        # Snapshot every field before any patching so we can compute the diff
+        snapshot = {}
+        for _sn, _sd in master_data.items():
+            if _sn.startswith('_') or not isinstance(_sd, dict):
+                continue
+            for _fn, _fd in _sd.items():
+                if isinstance(_fd, dict):
+                    snapshot[(_sn, _fn)] = _fd.get('content', '')
+
+        resolved_count = 0
+
+        for res in resolutions:
+            conflict_id = (res.get('conflict_id') or '').strip()
+            chosen_value = (res.get('chosen_value') or '').strip()
+            if not conflict_id or not chosen_value:
+                continue
+
+            target = next((c for c in conflicts if c.get('id') == conflict_id), None)
+            if not target:
+                continue
+
+            section = target['section']
+            field = target['field']
+            value_a = target.get('value_a', '')
+            value_b = target.get('value_b', '')
+            is_custom = chosen_value not in (value_a, value_b)
+
+            def _tok(s):
+                return set(re.sub(r'[^\w]', ' ', s.lower()).split())
+
+            def _dist(v, other):
+                return (_tok(v) - _tok(other)) or _tok(v)
+
+            def _match(line, dist):
+                return len(_tok(line) & dist) >= min(2, len(dist))
+
+            def _bullet_prefix(content):
+                for line in content.split('\n'):
+                    s = line.strip()
+                    for prefix in ('• ', '- ', '* '):
+                        if s.startswith(prefix):
+                            return prefix
+                return ''
+
+            def _fmt_custom(value, content):
+                prefix = _bullet_prefix(content)
+                if prefix and not any(value.startswith(p) for p in ('• ', '- ', '* ')):
+                    return prefix + value
+                return value
+
+            if is_custom:
+                _da = _dist(value_a, value_b)
+                _db = _dist(value_b, value_a)
+
+                def _strip(content, _cv=chosen_value, __da=_da, __db=_db):
+                    if not content:
+                        return _cv
+                    kept = [l for l in content.split('\n')
+                            if not _match(l, __da) and not _match(l, __db)]
+                    result = '\n'.join(l for l in kept if l.strip())
+                    formatted = _fmt_custom(_cv, content)
+                    return (result + '\n' + formatted) if result else formatted
+            else:
+                _rejected = value_b if chosen_value == value_a else value_a
+                _dist_rej = _dist(_rejected, chosen_value)
+
+                def _strip(content, _cv=chosen_value, _dr=_dist_rej):
+                    if not content:
+                        return _cv
+                    kept = [l for l in content.split('\n') if not _match(l, _dr)]
+                    return '\n'.join(l for l in kept if l.strip()) or _cv
+
+            # Patch primary field
+            if section in master_data and isinstance(master_data[section], dict):
+                fo = master_data[section].get(field)
+                if isinstance(fo, dict):
+                    master_data[section][field]['content'] = _strip(fo.get('content', ''))
+
+            # Global patch across all fields
+            for sn, sd in master_data.items():
+                if sn.startswith('_') or not isinstance(sd, dict):
+                    continue
+                for fn, fd in sd.items():
+                    if sn == section and fn == field:
+                        continue
+                    if not isinstance(fd, dict):
+                        continue
+                    nc = _strip(fd.get('content', ''))
+                    if nc != fd.get('content', ''):
+                        master_data[sn][fn]['content'] = nc
+
+            target['status'] = 'resolved'
+            target['resolved_value'] = chosen_value
+            resolved_count += 1
+
+        # Compute diff: snapshot vs final
+        changes = []
+        for sn, sd in master_data.items():
+            if sn.startswith('_') or not isinstance(sd, dict):
+                continue
+            for fn, fd in sd.items():
+                if not isinstance(fd, dict):
+                    continue
+                before = snapshot.get((sn, fn), '')
+                after = fd.get('content', '')
+                if before != after:
+                    changes.append({'section': sn, 'field': fn, 'before': before, 'after': after})
+
+        upload_to_azure(p, 'input', 'master_data.json', json.dumps(master_data, indent=2).encode('utf-8'))
+
+        new_output_filename = None
+        try:
+            docx_bytes = render_docx({'summarized_data': master_data, 'prospect_name': p}, TEMPLATE_PATH)
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            new_output_filename = f"output_{p}_resolved_{timestamp}.docx"
+            upload_to_azure(p, 'output', new_output_filename, docx_bytes)
+            logger.info("resolve_conflicts_batch: generated %s", new_output_filename)
+        except Exception:
+            logger.exception("resolve_conflicts_batch: doc gen failed for %s", p)
+
+        remaining = len([c for c in conflicts if c.get('status') != 'resolved'])
+        logger.info("resolve_conflicts_batch: resolved=%d remaining=%d fields_changed=%d", resolved_count, remaining, len(changes))
+
+        return jsonify({
+            'ok': True,
+            'resolved_count': resolved_count,
+            'remaining_conflicts': remaining,
+            'new_output_file': new_output_filename,
+            'changes': changes,
+        }), 200
 
 
 @app.route('/api/admin/backfill-industries', methods=['POST'])

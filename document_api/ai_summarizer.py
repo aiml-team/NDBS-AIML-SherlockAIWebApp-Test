@@ -71,6 +71,10 @@ class ChatAnthropicFoundry(BaseChatModel):
     _client: Any = PrivateAttr(default=None)
 
     def model_post_init(self, __context: Any) -> None:
+        # anthropic>=0.121 auto-reads ANTHROPIC_FOUNDRY_RESOURCE from env and errors
+        # out if a base_url is also passed. We use base_url as the source of truth,
+        # so drop the shell-inherited RESOURCE for this process.
+        os.environ.pop("ANTHROPIC_FOUNDRY_RESOURCE", None)
         self._client = AnthropicFoundry(
             api_key=self.foundry_api_key,
             base_url=self.foundry_base_url,

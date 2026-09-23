@@ -113,6 +113,17 @@
     height: 1px;
   }
 
+  /* Blinking cursor for streaming assistant messages */
+  .stream-cursor {
+    display: inline-block;
+    margin-left: 2px;
+    color: #2563eb;
+    animation: chat-stream-blink 1s steps(2, start) infinite;
+  }
+  @keyframes chat-stream-blink {
+    to { opacity: 0; }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       animation-duration: 0.001ms !important;

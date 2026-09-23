@@ -82,11 +82,24 @@ export default {
           '0%':   { transform: 'translateX(-100%)' },
           '100%': { transform: 'translateX(100%)' },
         },
+        // Gentle idle "breathing" for the floating chat button
+        'chat-float': {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%':      { transform: 'translateY(-4px)' },
+        },
+        // Soft outward pulse ring, fades as it grows
+        'chat-ping': {
+          '0%':   { transform: 'scale(1)',   opacity: '0.55' },
+          '80%':  { transform: 'scale(1.5)', opacity: '0'    },
+          '100%': { transform: 'scale(1.5)', opacity: '0'    },
+        },
       },
       animation: {
         'bounce-dot': 'bounce-dot 1.2s infinite',
         'pop-in':     'pop-in 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
         'shimmer':    'shimmer 2.4s linear infinite',
+        'chat-float': 'chat-float 3.2s ease-in-out infinite',
+        'chat-ping':  'chat-ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite',
       },
       backgroundImage: {
         // Deeper, slightly less saturated hero gradient

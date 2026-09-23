@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../lib/auth.jsx';
 import { useToast } from '../ui/Toast.jsx';
 import { useConfirm } from '../ui/Confirm.jsx';
+import { useFeedback } from '../feedback/FeedbackLauncher.jsx';
 
 const RESOURCES = [
   {
@@ -96,6 +97,7 @@ export default function UserMenu() {
   const toast = useToast();
   const confirm = useConfirm();
   const navigate = useNavigate();
+  const { openFeedback } = useFeedback();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -214,7 +216,17 @@ export default function UserMenu() {
           )}
 
           {/* ── Account actions ───────────────────── */}
-          <div className="px-1.5 pt-1.5 pb-1.5">
+          <div className="px-1.5 pt-1.5 pb-1.5 flex flex-col">
+            <button
+              type="button"
+              onClick={() => { setOpen(false); openFeedback(); }}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-semibold text-ink-muted hover:bg-blue-lt hover:text-blue bg-transparent border-none cursor-pointer transition-colors"
+            >
+              <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-current flex-shrink-0" aria-hidden="true">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v10c0 1.1-.9 2-2 2H7l-4 4V6c0-1.1.9-2 2-2zm2 4v2h12V8H6zm0 4v2h8v-2H6z" />
+              </svg>
+              Send feedback
+            </button>
             <button
               type="button"
               onClick={onLogout}

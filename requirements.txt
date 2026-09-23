@@ -26,3 +26,9 @@ webvtt-py
 
 # Search
 tavily-python
+
+# RAG chatbot — Azure AI Search (integrated vectorizer, no client-side embeddings)
+azure-search-documents>=11.5,<12.1
+
+# Dev/test (mocked Azure + Claude smoke tests)
+pytest

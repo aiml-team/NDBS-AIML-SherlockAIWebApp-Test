@@ -2,6 +2,9 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from './pages/Dashboard.jsx';
 import CreateProspect from './pages/CreateProspect.jsx';
 import ViewProspect from './pages/ViewProspect.jsx';
+import ChatWidget from './components/chat/ChatWidget.jsx';
+import { useAuth } from './lib/auth.jsx';
+import { useCurrentProspect } from './lib/currentProspect.jsx';
 import Login from './pages/Login.jsx';
 import Signup from './pages/Signup.jsx';
 import ForgotPassword from './pages/ForgotPassword.jsx';
@@ -11,8 +14,16 @@ import AdminFeedbackPage from './pages/AdminFeedbackPage.jsx';
 import RequireAuth, { RedirectIfAuthed } from './components/auth/RequireAuth.jsx';
 import RequireAdmin from './components/auth/RequireAdmin.jsx';
 
+function AuthedChatWidget() {
+  const { user } = useAuth();
+  const [prospect] = useCurrentProspect();
+  if (!user) return null;
+  return <ChatWidget prospect={prospect} />;
+}
+
 export default function App() {
   return (
+    <>
     <Routes>
       {/* Public auth routes */}
       <Route path="/login"           element={<RedirectIfAuthed><Login /></RedirectIfAuthed>} />
@@ -32,5 +43,7 @@ export default function App() {
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    <AuthedChatWidget />
+    </>
   );
 }

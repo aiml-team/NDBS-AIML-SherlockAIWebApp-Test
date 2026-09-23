@@ -305,3 +305,122 @@ export const adminApi = {
     return jsonOrThrow(res, 'Backfill failed');
   },
 };
+
+// ───── RAG Chat ─────
+export async function chatAsk({ question, prospect = null }) {
+  const body = { question };
+  if (prospect) body.prospect_name = prospect;
+  const res = await fetch(url('/api/rag/chat'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+    ...CREDS,
+  });
+  return jsonOrThrow(res, 'Chat request failed');
+}
+
+/**
+ * Streaming variant of chatAsk — talks to POST /api/rag/chat/stream and
+ * dispatches Server-Sent Events to per-type callbacks:
+ *
+ *   onSources({sources})      — always fires once, right after retrieval
+ *   onDelta(text)             — fires for every streamed token chunk
+ *   onConflicts([...])        — fires when the backend fetches conflict data
+ *   onDone({request_id})      — fires once on clean end-of-stream
+ *   onError({error, ...})     — fires on any upstream failure
+ *
+ * `signal` is an AbortSignal that cleanly cancels the request (server
+ * closes the underlying Anthropic stream).
+ */
+export async function chatAskStream({
+  question, prospect = null, onSources, onDelta, onConflicts, onDone, onError, signal,
+}) {
+  const reqBody = { question };
+  if (prospect) reqBody.prospect_name = prospect;
+  let res;
+  try {
+    res = await fetch(url('/api/rag/chat/stream'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(reqBody),
+      signal,
+      ...CREDS,
+    });
+  } catch (err) {
+    if (err.name === 'AbortError') return;
+    onError?.({ error: err.message || 'Network error' });
+    return;
+  }
+
+  if (!res.ok) {
+    let body = {};
+    try { body = await res.json(); } catch (_) { /* ignore */ }
+    onError?.({
+      error: body.error || `Chat request failed (HTTP ${res.status})`,
+      status: res.status,
+      request_id: body.request_id,
+    });
+    return;
+  }
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder('utf-8');
+  let buffer = '';
+
+  try {
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      let sepIdx;
+      while ((sepIdx = buffer.indexOf('\n\n')) !== -1) {
+        const rawFrame = buffer.slice(0, sepIdx);
+        buffer = buffer.slice(sepIdx + 2);
+        const evt = _parseSseFrame(rawFrame);
+        if (!evt) continue;
+        if (evt.event === 'sources')         onSources?.(evt.data.sources || []);
+        else if (evt.event === 'delta')      onDelta?.(evt.data.text || '');
+        else if (evt.event === 'conflicts')  onConflicts?.(evt.data.conflicts || []);
+        else if (evt.event === 'done')       onDone?.({ request_id: evt.data.request_id });
+        else if (evt.event === 'error')      onError?.({
+          error: evt.data.error || 'Chat failed',
+          request_id: evt.data.request_id,
+        });
+      }
+    }
+  } catch (err) {
+    if (err.name !== 'AbortError') {
+      onError?.({ error: err.message || 'Stream read error' });
+    }
+  }
+}
+
+function _parseSseFrame(frame) {
+  let eventName = 'message';
+  let dataLines = [];
+  for (const line of frame.split('\n')) {
+    if (!line || line.startsWith(':')) continue;
+    if (line.startsWith('event:')) eventName = line.slice(6).trim();
+    else if (line.startsWith('data:')) dataLines.push(line.slice(5).trim());
+  }
+  if (dataLines.length === 0) return null;
+  try {
+    return { event: eventName, data: JSON.parse(dataLines.join('\n')) };
+  } catch (_) {
+    return null;
+  }
+}
+
+export async function chatGreeting() {
+  const res = await fetch(url('/api/rag/greeting'), CREDS);
+  if (!res.ok) throw new Error('greeting failed');
+  return res.json();  // { success, greeting, fallback?, request_id }
+}
+
+export async function getProspectConflicts(prospect) {
+  const res = await fetch(url(`/api/prospect/${encodeURIComponent(prospect)}/conflicts`), CREDS);
+  if (!res.ok) return [];
+  const body = await res.json();
+  return body.conflicts || [];
+}

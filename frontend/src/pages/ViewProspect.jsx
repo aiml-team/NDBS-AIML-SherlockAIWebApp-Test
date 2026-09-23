@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCurrentProspect } from '../lib/currentProspect.jsx';
 import { useParams } from 'react-router-dom';
 import Header from '../components/layout/Header.jsx';
 import UserMenu from '../components/auth/UserMenu.jsx';
@@ -31,6 +32,11 @@ export default function ViewProspect() {
   const prospectName = decodeURIComponent(name);
   const toast = useToast();
   const confirm = useConfirm();
+  const [, setCurrentProspect] = useCurrentProspect();
+  useEffect(() => {
+    setCurrentProspect(prospectName);
+    return () => setCurrentProspect(null);
+  }, [prospectName, setCurrentProspect]);
 
   const [inputFiles, setInputFiles] = useState(null);
   const [outputFiles, setOutputFiles] = useState(null);
@@ -55,6 +61,15 @@ export default function ViewProspect() {
   }, [prospectName]);
 
   useEffect(() => { loadFiles(); }, [loadFiles]);
+
+  // Reload output files when the chat widget resolves a conflict and fires this event.
+  useEffect(() => {
+    const handler = (e) => {
+      if (!e.detail?.prospect || e.detail.prospect === prospectName) loadFiles();
+    };
+    window.addEventListener('sherlock:files-changed', handler);
+    return () => window.removeEventListener('sherlock:files-changed', handler);
+  }, [loadFiles, prospectName]);
 
   const lastActivity = useMemo(() => {
     if (!inputFiles && !outputFiles) return null;

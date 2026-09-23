@@ -1,6 +1,5 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../lib/auth.jsx';
-import FeedbackLauncher from '../feedback/FeedbackLauncher.jsx';
 
 function FullPageSpinner() {
   return (
@@ -27,12 +26,7 @@ export default function RequireAuth({ children }) {
   if (!isAuthed) {
     return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
   }
-  return (
-    <>
-      {children}
-      <FeedbackLauncher />
-    </>
-  );
+  return children;
 }
 
 export function RedirectIfAuthed({ children }) {

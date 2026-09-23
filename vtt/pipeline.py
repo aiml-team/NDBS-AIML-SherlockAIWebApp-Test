@@ -108,6 +108,10 @@ def _get_client() -> FoundryClient:
     if not api_key or not base_url:
         raise RuntimeError("Foundry not configured. Set ANTHROPIC_FOUNDRY_API_KEY + ANTHROPIC_FOUNDRY_BASE_URL in .env")
 
+    # anthropic>=0.121 auto-reads ANTHROPIC_FOUNDRY_RESOURCE from env and errors
+    # out if a base_url is also passed. We use base_url as the source of truth,
+    # so drop the shell-inherited RESOURCE for this process.
+    os.environ.pop("ANTHROPIC_FOUNDRY_RESOURCE", None)
     return FoundryClient(AsyncAnthropicFoundry(api_key=api_key, base_url=base_url), model)
 
 

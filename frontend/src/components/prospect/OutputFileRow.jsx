@@ -4,6 +4,7 @@ import { formatSize, parseOutputFilename } from '../../lib/format.js';
 export default function OutputFileRow({ prospect, file, onPreview, highlight = false }) {
   const { filename, size } = file;
   const generated = parseOutputFilename(filename);
+  const isResolved = /[_-]resolved[_-]/i.test(filename);
   const primary = generated ? `Discovery Profile · ${generated}` : filename;
   const secondary = [generated ? filename : '', size != null ? formatSize(size) : '']
     .filter(Boolean)
@@ -14,17 +15,26 @@ export default function OutputFileRow({ prospect, file, onPreview, highlight = f
       className={`group flex items-center gap-3 border px-3.5 py-3 rounded-2xl transition-all ${
         highlight
           ? 'bg-gradient-to-br from-green-lt to-white border-green-mid shadow-card'
+          : isResolved
+          ? 'bg-gradient-to-br from-amber-50 to-white border-amber-200 hover:border-amber-300'
           : 'bg-white border-bd hover:border-green-mid hover:bg-green-lt/40'
       }`}
     >
       <div
         className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
-          highlight ? 'bg-green text-white' : 'bg-green-lt text-green-dark'
+          highlight ? 'bg-green text-white' : isResolved ? 'bg-amber-100 text-amber-700' : 'bg-green-lt text-green-dark'
         }`}
       >
-        <svg viewBox="0 0 16 16" className="w-4 h-4 fill-current">
-          <path d="M3 1.5A1.5 1.5 0 0 1 4.5 0h5L13 3.5v11A1.5 1.5 0 0 1 11.5 16h-7A1.5 1.5 0 0 1 3 14.5v-13ZM9 1H4.5a.5.5 0 0 0-.5.5v13a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 .5-.5V4H9.5A.5.5 0 0 1 9 3.5V1Z" />
-        </svg>
+        {isResolved ? (
+          <svg viewBox="0 0 16 16" className="w-4 h-4 fill-current">
+            <path d="M3 1.5A1.5 1.5 0 0 1 4.5 0h5L13 3.5v11A1.5 1.5 0 0 1 11.5 16h-7A1.5 1.5 0 0 1 3 14.5v-13ZM9 1H4.5a.5.5 0 0 0-.5.5v13a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 .5-.5V4H9.5A.5.5 0 0 1 9 3.5V1Z" />
+            <path d="M5.5 8.75a.75.75 0 0 1 .75-.75h3.5a.75.75 0 0 1 0 1.5h-3.5a.75.75 0 0 1-.75-.75Zm0-2a.75.75 0 0 1 .75-.75h3.5a.75.75 0 0 1 0 1.5h-3.5a.75.75 0 0 1-.75-.75Zm0 4a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.75-.75Z" />
+          </svg>
+        ) : (
+          <svg viewBox="0 0 16 16" className="w-4 h-4 fill-current">
+            <path d="M3 1.5A1.5 1.5 0 0 1 4.5 0h5L13 3.5v11A1.5 1.5 0 0 1 11.5 16h-7A1.5 1.5 0 0 1 3 14.5v-13ZM9 1H4.5a.5.5 0 0 0-.5.5v13a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 .5-.5V4H9.5A.5.5 0 0 1 9 3.5V1Z" />
+          </svg>
+        )}
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
@@ -37,6 +47,17 @@ export default function OutputFileRow({ prospect, file, onPreview, highlight = f
               className="inline-flex items-center bg-green text-white text-[9.5px] font-bold uppercase tracking-[0.12em] px-1.5 py-0.5 rounded font-mono flex-shrink-0 animate-pop-in"
             >
               New
+            </span>
+          )}
+          {isResolved && !highlight && (
+            <span
+              title="Generated after conflict resolution"
+              className="inline-flex items-center gap-0.5 bg-amber-500 text-white text-[9.5px] font-bold uppercase tracking-[0.12em] px-1.5 py-0.5 rounded font-mono flex-shrink-0"
+            >
+              <svg viewBox="0 0 12 12" className="w-2.5 h-2.5 fill-current">
+                <path d="M6 1a5 5 0 1 0 0 10A5 5 0 0 0 6 1ZM5.25 3.75a.75.75 0 0 1 1.5 0v2.5a.75.75 0 0 1-1.5 0v-2.5Zm.75 5.5a.875.875 0 1 1 0-1.75.875.875 0 0 1 0 1.75Z" />
+              </svg>
+              Conflict Resolved
             </span>
           )}
         </div>
