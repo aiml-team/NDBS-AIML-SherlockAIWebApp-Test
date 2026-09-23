@@ -377,6 +377,7 @@ def retrieve_chunks(question: str, top_k: int = _DEFAULT_TOP_K) -> List[Dict[str
         fields=vector_field,
     )
 
+    raw = None
     try:
         results = client.search(
             search_text=question,
@@ -395,9 +396,33 @@ def retrieve_chunks(question: str, top_k: int = _DEFAULT_TOP_K) -> List[Dict[str
         raise RagServiceError('Could not reach Azure AI Search.') from None
     except HttpResponseError as e:
         logger.warning(
-            'rag.search: http error status=%s', getattr(e, 'status_code', '?'),
+            'rag.search: vector/semantic failed (status=%s) — falling back to keyword search',
+            getattr(e, 'status_code', '?'),
         )
-        raise RagServiceError('Azure AI Search request failed.') from None
+    except Exception as e:
+        logger.warning(
+            'rag.search: vector/semantic error (%s) — falling back to keyword search',
+            type(e).__name__,
+        )
+
+    if raw is None:
+        # Fallback: plain keyword search — works on any index with no vectorizer/semantic config.
+        try:
+            results = client.search(
+                search_text=question,
+                select=_SELECT_FIELDS,
+                top=top_k,
+            )
+            raw = list(results)
+        except ClientAuthenticationError:
+            logger.error('rag.search.fallback: authentication failed')
+            raise RagServiceError('Azure AI Search authentication failed.') from None
+        except ServiceRequestError:
+            logger.warning('rag.search.fallback: service request error')
+            raise RagServiceError('Could not reach Azure AI Search.') from None
+        except HttpResponseError as e:
+            logger.warning('rag.search.fallback: http error status=%s', getattr(e, 'status_code', '?'))
+            raise RagServiceError('Azure AI Search request failed.') from None
 
     chunks: List[Dict[str, Any]] = []
     seen: set = set()
