@@ -753,17 +753,19 @@ def _stream_claude_deltas(
 
     try:
         yield from _run(kwargs)
-    except BadRequestError as e:
+    except (BadRequestError, TypeError) as e:
         detail = str(e).lower()
-        if 'temperature' in kwargs and 'temperature' in detail and 'deprecated' in detail:
+        if 'temperature' in kwargs and ('temperature' in detail or isinstance(e, TypeError)):
             _temperature_unsupported_models.add(model)
-            logger.info('rag.stream.llm: temperature deprecated for %s — caching + retrying without',
+            logger.info('rag.stream.llm: temperature not supported for %s — caching + retrying without',
                         model)
             kwargs.pop('temperature', None)
             yield from _run(kwargs)
-        else:
+        elif isinstance(e, BadRequestError):
             logger.warning('rag.stream.llm: bad request: %s', str(e)[:200])
             raise RagServiceError('Claude rejected the request.') from None
+        else:
+            raise
 
 
 def _sse_pack(event_name: str, data_json: str) -> str:
@@ -874,22 +876,21 @@ def _call_claude(
 
     try:
         response = _do_call(kwargs)
-    except BadRequestError as e:
+    except (BadRequestError, TypeError) as e:
         detail = str(e).lower()
-        if 'temperature' in kwargs and 'temperature' in detail and 'deprecated' in detail:
-            # First time this model has rejected temperature. Remember it so
-            # every subsequent request skips the knob outright, and retry
-            # this one without it.
+        if 'temperature' in kwargs and ('temperature' in detail or isinstance(e, TypeError)):
             _temperature_unsupported_models.add(model)
             logger.info(
-                'rag.llm: temperature deprecated for %s — caching + retrying without',
+                'rag.llm: temperature not supported for %s — caching + retrying without',
                 model,
             )
             kwargs.pop('temperature', None)
             response = _do_call(kwargs)
-        else:
+        elif isinstance(e, BadRequestError):
             logger.warning('rag.llm: bad request: %s', str(e)[:200])
             raise RagServiceError('Claude rejected the request.') from None
+        else:
+            raise
     except RagServiceError:
         # Already logged + mapped inside _do_call — propagate unchanged.
         raise
